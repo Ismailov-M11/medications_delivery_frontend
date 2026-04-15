@@ -431,25 +431,16 @@ export function CustomerOrderPage() {
                           Рассчитываем стоимость...
                         </p>
                       ) : (
-                        <p className={`text-xs ${noorUnavailable ? 'text-red-400' : 'text-muted-foreground'}`}>
-                          {noorUnavailable && noorEval.result?.error
-                            ? noorEval.result.error
-                            : `${t('courier.deliveryPrice')}: ${formatCurrency(effectivePrice)}`}
-                        </p>
+                        <>
+                          <p className="text-xs text-muted-foreground">
+                            {t('courier.deliveryPrice')}: {formatCurrency(effectivePrice)}
+                          </p>
+                          {noorUnavailable && noorEval.result?.error && (
+                            <p className="text-xs text-red-400 mt-0.5">{noorEval.result.error}</p>
+                          )}
+                        </>
                       )}
                     </div>
-                    {!noorUnavailable && (
-                      <div className="text-right">
-                        {isNoor && noorEval.loading ? (
-                          <p className="text-xs text-gray-400">—</p>
-                        ) : (
-                          <>
-                            <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
-                            <p className="font-bold text-gray-900">{formatCurrency(total)}</p>
-                          </>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               )
