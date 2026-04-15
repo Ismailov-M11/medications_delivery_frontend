@@ -9,6 +9,8 @@ import {
   getOrderByToken,
   confirmOrderByToken,
   selectCourierByToken,
+  evaluateNoor,
+  NoorEvalResult,
   Order,
   CourierType,
 } from '@/api/orders'
@@ -79,6 +81,10 @@ export function CustomerOrderPage() {
   const [detailsData, setDetailsData] = useState<DetailsForm & { customerLat?: number; customerLng?: number } | null>(null)
   const [selectedCourier, setSelectedCourier] = useState<CourierType | null>(null)
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
+  const [noorEval, setNoorEval] = useState<{ loading: boolean; result: NoorEvalResult | null }>({
+    loading: false,
+    result: null,
+  })
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['order', token],
@@ -104,6 +110,15 @@ export function CustomerOrderPage() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<DetailsForm>({
     resolver: zodResolver(detailsSchema),
   })
+
+  // Call Noor evaluate as soon as we enter the courier step
+  useEffect(() => {
+    if (step !== 'courier' || !token) return
+    setNoorEval({ loading: true, result: null })
+    evaluateNoor(token)
+      .then((res) => setNoorEval({ loading: false, result: res.data }))
+      .catch(() => setNoorEval({ loading: false, result: { available: false, stage: 0, price: null, error: 'Ошибка соединения с Noor' } }))
+  }, [step, token])
 
   // Pre-fill address when map selection arrives (step transition map → details)
   useEffect(() => {
@@ -132,7 +147,12 @@ export function CustomerOrderPage() {
   const onConfirmCourier = () => {
     if (!selectedCourier) return
     const opt = COURIER_OPTIONS.find((c) => c.id === selectedCourier)!
-    courierMutation.mutate({ courier: selectedCourier, deliveryPrice: opt.deliveryPrice })
+    // Use real Noor price if available, otherwise fall back to default
+    const deliveryPrice =
+      selectedCourier === 'noor' && noorEval.result?.price != null
+        ? noorEval.result.price
+        : opt.deliveryPrice
+    courierMutation.mutate({ courier: selectedCourier, deliveryPrice })
   }
 
   // ── Loading ──
@@ -369,18 +389,28 @@ export function CustomerOrderPage() {
           <p className="text-sm font-semibold text-gray-700">{t('customer.chooseCourier')}</p>
           <div className="space-y-3">
             {COURIER_OPTIONS.map((courier) => {
-              const total = currentOrder.medicinesTotal + courier.deliveryPrice
+              // For Noor — use real price from evaluate if available
+              const isNoor = courier.id === 'noor'
+              const noorUnavailable = isNoor && !noorEval.loading && noorEval.result?.available === false
+              const noorPrice = isNoor && noorEval.result?.price != null ? noorEval.result.price : courier.deliveryPrice
+              const effectivePrice = isNoor ? noorPrice : courier.deliveryPrice
+              const total = currentOrder.medicinesTotal + effectivePrice
               const isSelected = selectedCourier === courier.id
+
               return (
                 <div
                   key={courier.id}
-                  onClick={() => setSelectedCourier(courier.id)}
+                  onClick={() => !noorUnavailable && setSelectedCourier(courier.id)}
                   className={cn(
-                    'relative p-4 rounded-xl border-2 cursor-pointer transition-all bg-white',
-                    isSelected ? `${courier.bgColor} ${courier.borderColor}` : 'border-gray-200 hover:border-gray-300',
+                    'relative p-4 rounded-xl border-2 transition-all bg-white',
+                    noorUnavailable
+                      ? 'opacity-50 cursor-not-allowed border-gray-200'
+                      : 'cursor-pointer',
+                    !noorUnavailable && isSelected ? `${courier.bgColor} ${courier.borderColor}` : '',
+                    !noorUnavailable && !isSelected ? 'border-gray-200 hover:border-gray-300' : '',
                   )}
                 >
-                  {isSelected && (
+                  {isSelected && !noorUnavailable && (
                     <div className="absolute top-3 right-3">
                       <CheckCircle2 className={`h-5 w-5 ${courier.color}`} />
                     </div>
@@ -389,14 +419,31 @@ export function CustomerOrderPage() {
                     <span className="text-2xl">{courier.icon}</span>
                     <div className="flex-1">
                       <p className={`font-semibold ${courier.color}`}>{t(courier.nameKey)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t('courier.deliveryPrice')}: {formatCurrency(courier.deliveryPrice)}
-                      </p>
+                      {isNoor && noorEval.loading ? (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="h-3 w-3 border border-teal-400 border-t-transparent rounded-full animate-spin inline-block" />
+                          Рассчитываем стоимость...
+                        </p>
+                      ) : noorUnavailable ? (
+                        <p className="text-xs text-red-500">{noorEval.result?.error ?? 'Недоступно'}</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          {t('courier.deliveryPrice')}: {formatCurrency(effectivePrice)}
+                        </p>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
-                      <p className="font-bold text-gray-900">{formatCurrency(total)}</p>
-                    </div>
+                    {!noorUnavailable && (
+                      <div className="text-right">
+                        {isNoor && noorEval.loading ? (
+                          <p className="text-xs text-gray-400">—</p>
+                        ) : (
+                          <>
+                            <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
+                            <p className="font-bold text-gray-900">{formatCurrency(total)}</p>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -408,18 +455,28 @@ export function CustomerOrderPage() {
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="p-4 space-y-1 text-sm">
                 <p className="font-semibold text-blue-700 mb-2">{t('order.detail')}</p>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('order.medicinesAmount')}</span>
-                  <span>{formatCurrency(currentOrder.medicinesTotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('order.deliveryPrice')}</span>
-                  <span>{formatCurrency(selectedCourierOption.deliveryPrice)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-blue-700 border-t pt-1 mt-1">
-                  <span>{t('order.totalPrice')}</span>
-                  <span>{formatCurrency(currentOrder.medicinesTotal + selectedCourierOption.deliveryPrice)}</span>
-                </div>
+                {(() => {
+                  const summaryDelivery =
+                    selectedCourier === 'noor' && noorEval.result?.price != null
+                      ? noorEval.result.price
+                      : selectedCourierOption.deliveryPrice
+                  return (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('order.medicinesAmount')}</span>
+                        <span>{formatCurrency(currentOrder.medicinesTotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('order.deliveryPrice')}</span>
+                        <span>{formatCurrency(summaryDelivery)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-blue-700 border-t pt-1 mt-1">
+                        <span>{t('order.totalPrice')}</span>
+                        <span>{formatCurrency(currentOrder.medicinesTotal + summaryDelivery)}</span>
+                      </div>
+                    </>
+                  )
+                })()}
               </CardContent>
             </Card>
           )}

@@ -141,3 +141,17 @@ export const selectCourierByToken = async (
   )
   return data
 }
+
+export interface NoorEvalResult {
+  available: boolean
+  stage: number
+  price: number | null
+  error: string | null
+}
+
+export const evaluateNoor = async (
+  token: string,
+): Promise<{ success: boolean; data: NoorEvalResult }> => {
+  const { data } = await apiClient.post(`/api/orders/${token}/noor/evaluate`)
+  return data
+}
