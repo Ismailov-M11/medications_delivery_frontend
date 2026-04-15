@@ -8,7 +8,13 @@ declare global {
 const MAPS_KEY = import.meta.env.VITE_YANDEX_MAPS_KEY as string
 const SUGGEST_KEY = import.meta.env.VITE_YANDEX_SUGGEST_KEY as string
 
-// Singleton — shares with YandexMap if on same page
+// Tashkent bounding box [SW, NE]
+const TASHKENT_BOUNDS: [[number, number], [number, number]] = [
+  [41.17, 69.09],
+  [41.42, 69.47],
+]
+const TASHKENT_CENTER: [number, number] = [41.2995, 69.2401]
+
 let _mapsPromise: Promise<void> | null = null
 function loadMaps(): Promise<void> {
   if (_mapsPromise) return _mapsPromise
@@ -34,17 +40,16 @@ function loadMaps(): Promise<void> {
 export interface CustomerMapProps {
   initialCenter?: [number, number]
   onConfirm: (coords: [number, number], address: string) => void
-  onBack?: () => void
 }
 
-export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapProps) {
+export function CustomerMap({ initialCenter, onConfirm }: CustomerMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [ready, setReady] = useState(false)
   const [address, setAddress] = useState('')
-  const [coords, setCoords] = useState<[number, number]>(initialCenter ?? [41.2995, 69.2401])
+  const [coords, setCoords] = useState<[number, number]>(initialCenter ?? TASHKENT_CENTER)
   const [geocoding, setGeocoding] = useState(false)
   const [searchMode, setSearchMode] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -55,30 +60,43 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
     if (!window.ymaps) return
     setGeocoding(true)
     try {
-      const res = await window.ymaps.geocode(c, { results: 1 })
+      const res = await window.ymaps.geocode(c, {
+        results: 1,
+        boundedBy: TASHKENT_BOUNDS,
+      })
       const obj = res.geoObjects.get(0)
       if (obj) setAddress(obj.getAddressLine())
     } catch { /* ignore */ } finally { setGeocoding(false) }
   }, [])
 
-  // Initialize map
   useEffect(() => {
     let cancelled = false
     loadMaps().then(() => {
       if (cancelled || !containerRef.current) return
       window.ymaps.ready(() => {
         if (cancelled || !containerRef.current) return
-        const map = new window.ymaps.Map(containerRef.current, {
-          center: coords,
-          zoom: 15,
-          controls: [], // all default controls removed
-        })
+
+        const map = new window.ymaps.Map(
+          containerRef.current,
+          // state
+          { center: coords, zoom: 13, controls: [] },
+          // options — suppress all extra UI
+          {
+            suppressMapOpenBlock: true,
+            suppressObsoleteBrowserNotifier: true,
+            restrictMapArea: TASHKENT_BOUNDS,
+            yandexMapDisablePoiInteractivity: false,
+          },
+        )
         mapRef.current = map
+
+        // Remove anything that still sneaks in
+        map.controls.removeAll()
 
         // Geocode initial center
         geocode(coords)
 
-        // After user drag/zoom ends → geocode new center
+        // After user action ends → geocode new center
         map.events.add('actionend', () => {
           const c = map.getCenter() as [number, number]
           setCoords(c)
@@ -119,7 +137,11 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
     setSearchQuery(val)
     if (!val.trim() || !window.ymaps) { setSuggestions([]); return }
     try {
-      const res = await window.ymaps.suggest(val, { results: 5 })
+      const res = await window.ymaps.suggest(val, {
+        results: 5,
+        boundedBy: TASHKENT_BOUNDS,
+        strictBounds: true,
+      })
       setSuggestions(res.map((r: any) => r.value))
     } catch { setSuggestions([]) }
   }
@@ -130,7 +152,11 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
     setSuggestions([])
     if (!window.ymaps) return
     try {
-      const res = await window.ymaps.geocode(s, { results: 1 })
+      const res = await window.ymaps.geocode(s, {
+        results: 1,
+        boundedBy: TASHKENT_BOUNDS,
+        strictBounds: true,
+      })
       const obj = res.geoObjects.get(0)
       if (obj) {
         const c = obj.geometry.getCoordinates() as [number, number]
@@ -143,7 +169,7 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Map canvas — always mounted so ref stays valid */}
+      {/* Map canvas */}
       <div ref={containerRef} className="absolute inset-0" />
 
       {/* Loading overlay */}
@@ -169,6 +195,7 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
       {ready && searchMode && (
         <div className="absolute top-0 left-0 right-0 z-30 bg-white shadow-lg">
           <div className="flex items-center gap-2 px-3 py-2 border-b">
+            {/* Back closes search */}
             <button
               onClick={() => { setSearchMode(false); setSearchQuery(''); setSuggestions([]) }}
               className="p-1.5 rounded-full hover:bg-gray-100 shrink-0"
@@ -180,7 +207,7 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Поиск адреса..."
+              placeholder="Поиск по Ташкенту..."
               className="flex-1 py-1.5 text-sm focus:outline-none"
             />
             {searchQuery && (
@@ -205,32 +232,25 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
         </div>
       )}
 
-      {/* ── Center pin (fixed in CSS, map moves under it) ── */}
+      {/* ── Center pin ── */}
       {ready && !searchMode && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          {/* Pin shifts up so its bottom tip is at exact center */}
           <div style={{ transform: 'translateY(-28px)' }}>
-            <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="36" height="48" viewBox="0 0 36 48" fill="none">
               <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 30 18 30S36 31.5 36 18C36 8.06 27.94 0 18 0z" fill="#2563EB"/>
               <circle cx="18" cy="18" r="8" fill="white"/>
               <circle cx="18" cy="18" r="4.5" fill="#2563EB"/>
             </svg>
-            <div className="w-2 h-1 bg-black/25 rounded-full mx-auto -mt-0.5 blur-[1px]" />
+            <div className="w-2 h-1 bg-black/20 rounded-full mx-auto -mt-0.5 blur-[1px]" />
           </div>
         </div>
       )}
 
-      {/* ── Bottom controls ── */}
+      {/* ── Bottom controls (normal mode only) ── */}
       {ready && !searchMode && (
         <div className="absolute bottom-0 left-0 right-0 z-20">
-          {/* Icon button row */}
-          <div className="flex items-end justify-between px-4 mb-3">
-            <button
-              onClick={onBack ?? (() => window.history.back())}
-              className="w-11 h-11 bg-white rounded-full shadow-md flex items-center justify-center active:scale-95 transition-transform"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-700" />
-            </button>
+          {/* Search + GPS buttons — right side only, no back button */}
+          <div className="flex justify-end px-4 mb-3">
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setSearchMode(true)}
@@ -248,12 +268,12 @@ export function CustomerMap({ initialCenter, onConfirm, onBack }: CustomerMapPro
             </div>
           </div>
 
-          {/* Confirm button */}
-          <div className="px-4 pb-8">
+          {/* Confirm button — covers Yandex attribution */}
+          <div className="px-4 pb-8 bg-white/80 backdrop-blur-sm pt-2">
             <button
               onClick={() => onConfirm(coords, address)}
               disabled={!address || geocoding}
-              className="w-full py-4 bg-teal-500 hover:bg-teal-600 active:bg-teal-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold rounded-2xl text-base transition-colors shadow-lg active:scale-[0.99]"
+              className="w-full py-4 bg-teal-500 hover:bg-teal-600 active:bg-teal-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold rounded-2xl text-base transition-colors shadow-lg"
             >
               Выбрать адрес
             </button>
