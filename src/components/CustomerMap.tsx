@@ -16,22 +16,32 @@ const TASHKENT_BOUNDS: [[number, number], [number, number]] = [
 const TASHKENT_CENTER: [number, number] = [41.2995, 69.2401]
 
 let _mapsPromise: Promise<void> | null = null
+
+function waitForYmaps(timeoutMs = 8000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.ymaps) { resolve(); return }
+    const start = Date.now()
+    const iv = setInterval(() => {
+      if (window.ymaps) { clearInterval(iv); resolve() }
+      else if (Date.now() - start > timeoutMs) { clearInterval(iv); reject(new Error('ymaps timeout')) }
+    }, 50)
+  })
+}
+
 function loadMaps(): Promise<void> {
   if (_mapsPromise) return _mapsPromise
   if (window.ymaps) { _mapsPromise = Promise.resolve(); return _mapsPromise }
   const existing = document.querySelector('script[src*="api-maps.yandex.ru"]')
   if (existing) {
-    _mapsPromise = new Promise((resolve) => {
-      const iv = setInterval(() => { if (window.ymaps) { clearInterval(iv); resolve() } }, 50)
-    })
+    _mapsPromise = waitForYmaps()
     return _mapsPromise
   }
   _mapsPromise = new Promise((resolve, reject) => {
     const s = document.createElement('script')
     s.src = `https://api-maps.yandex.ru/2.1/?apikey=${MAPS_KEY}&suggest_apikey=${SUGGEST_KEY}&lang=ru_RU`
     s.async = true
-    s.onload = () => resolve()
-    s.onerror = () => reject(new Error('Failed to load Yandex Maps'))
+    s.onload = () => waitForYmaps().then(resolve).catch(reject)
+    s.onerror = () => { _mapsPromise = null; reject(new Error('Failed to load Yandex Maps')) }
     document.head.appendChild(s)
   })
   return _mapsPromise
@@ -48,6 +58,7 @@ export function CustomerMap({ initialCenter, onConfirm }: CustomerMapProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [ready, setReady] = useState(false)
+  const [mapError, setMapError] = useState(false)
   const [address, setAddress] = useState('')
   const [coords, setCoords] = useState<[number, number]>(initialCenter ?? TASHKENT_CENTER)
   const [geocoding, setGeocoding] = useState(false)
@@ -75,38 +86,45 @@ export function CustomerMap({ initialCenter, onConfirm }: CustomerMapProps) {
       if (cancelled || !containerRef.current) return
       window.ymaps.ready(() => {
         if (cancelled || !containerRef.current) return
+        try {
+          const map = new window.ymaps.Map(
+            containerRef.current,
+            // state
+            { center: coords, zoom: 13, controls: [] },
+            // options — suppress all extra UI
+            {
+              suppressMapOpenBlock: true,
+              suppressObsoleteBrowserNotifier: true,
+              restrictMapArea: TASHKENT_BOUNDS,
+              yandexMapDisablePoiInteractivity: false,
+            },
+          )
+          mapRef.current = map
 
-        const map = new window.ymaps.Map(
-          containerRef.current,
-          // state
-          { center: coords, zoom: 13, controls: [] },
-          // options — suppress all extra UI
-          {
-            suppressMapOpenBlock: true,
-            suppressObsoleteBrowserNotifier: true,
-            restrictMapArea: TASHKENT_BOUNDS,
-            yandexMapDisablePoiInteractivity: false,
-          },
-        )
-        mapRef.current = map
+          // Remove anything that still sneaks in
+          map.controls.removeAll()
 
-        // Remove anything that still sneaks in
-        map.controls.removeAll()
+          // Geocode initial center
+          geocode(coords)
 
-        // Geocode initial center
-        geocode(coords)
+          // After user action ends → geocode new center
+          map.events.add('actionend', () => {
+            const c = map.getCenter() as [number, number]
+            setCoords(c)
+            if (debounceRef.current) clearTimeout(debounceRef.current)
+            debounceRef.current = setTimeout(() => geocode(c), 300)
+          })
 
-        // After user action ends → geocode new center
-        map.events.add('actionend', () => {
-          const c = map.getCenter() as [number, number]
-          setCoords(c)
-          if (debounceRef.current) clearTimeout(debounceRef.current)
-          debounceRef.current = setTimeout(() => geocode(c), 300)
-        })
-
-        setReady(true)
+          setReady(true)
+        } catch (err) {
+          console.error('Map init error:', err)
+          if (!cancelled) setMapError(true)
+        }
       })
-    }).catch(console.error)
+    }).catch((err) => {
+      console.error('Map load error:', err)
+      if (!cancelled) setMapError(true)
+    })
 
     return () => {
       cancelled = true
@@ -173,9 +191,26 @@ export function CustomerMap({ initialCenter, onConfirm }: CustomerMapProps) {
       <div ref={containerRef} className="absolute inset-0" />
 
       {/* Loading overlay */}
-      {!ready && (
+      {!ready && !mapError && (
         <div className="absolute inset-0 z-50 bg-gray-100 flex items-center justify-center">
           <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Error overlay */}
+      {mapError && (
+        <div className="absolute inset-0 z-50 bg-gray-100 flex items-center justify-center px-6">
+          <div className="text-center space-y-4">
+            <div className="text-4xl">🗺️</div>
+            <p className="text-sm font-medium text-gray-700">Не удалось загрузить карту</p>
+            <p className="text-xs text-gray-400">Проверьте подключение к интернету и попробуйте снова</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 active:scale-95 transition"
+            >
+              Обновить страницу
+            </button>
+          </div>
         </div>
       )}
 

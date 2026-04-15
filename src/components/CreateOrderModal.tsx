@@ -51,9 +51,11 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
     mutationFn: createOrder,
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['pharmacyOrders'] })
+      const serverUrl = response.data.orderUrl
       const url =
-        response.data.orderUrl ||
-        buildOrderUrl(response.data.order.token)
+        (serverUrl && serverUrl.startsWith('http'))
+          ? serverUrl
+          : buildOrderUrl(response.data.order.token)
       setCreatedUrl(url)
       toast({
         title: t('order.successCreated'),
