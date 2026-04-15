@@ -396,7 +396,6 @@ export function CustomerOrderPage() {
               // Show real price even when unavailable (Noor returns total_delivery_price for all stages)
               const noorPrice = isNoor && noorEval.result?.price != null ? noorEval.result.price : courier.deliveryPrice
               const effectivePrice = isNoor ? noorPrice : courier.deliveryPrice
-              const total = currentOrder.medicinesTotal + effectivePrice
               const isSelected = selectedCourier === courier.id
 
               return (
