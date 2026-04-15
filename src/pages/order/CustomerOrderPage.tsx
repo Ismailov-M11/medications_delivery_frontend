@@ -393,6 +393,7 @@ export function CustomerOrderPage() {
               // For Noor — use real price from evaluate if available
               const isNoor = courier.id === 'noor'
               const noorUnavailable = isNoor && !noorEval.loading && noorEval.result?.available === false
+              // Show real price even when unavailable (Noor returns total_delivery_price for all stages)
               const noorPrice = isNoor && noorEval.result?.price != null ? noorEval.result.price : courier.deliveryPrice
               const effectivePrice = isNoor ? noorPrice : courier.deliveryPrice
               const total = currentOrder.medicinesTotal + effectivePrice
@@ -426,29 +427,29 @@ export function CustomerOrderPage() {
                       <p className={`font-semibold ${courier.color}`}>{t(courier.nameKey)}</p>
                       {isNoor && noorEval.loading ? (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <span className="h-3 w-3 border border-teal-400 border-t-transparent rounded-full animate-spin inline-block" />
+                          <span className="h-3 w-3 border border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
                           Рассчитываем стоимость...
                         </p>
-                      ) : noorUnavailable ? (
-                        <p className="text-xs text-red-500">{noorEval.result?.error ?? 'Недоступно'}</p>
                       ) : (
-                        <p className="text-xs text-muted-foreground">
-                          {t('courier.deliveryPrice')}: {formatCurrency(effectivePrice)}
+                        <p className={`text-xs ${noorUnavailable ? 'text-red-400' : 'text-muted-foreground'}`}>
+                          {noorUnavailable && noorEval.result?.error
+                            ? noorEval.result.error
+                            : `${t('courier.deliveryPrice')}: ${formatCurrency(effectivePrice)}`}
                         </p>
                       )}
                     </div>
-                    {!noorUnavailable && (
-                      <div className="text-right">
-                        {isNoor && noorEval.loading ? (
-                          <p className="text-xs text-gray-400">—</p>
-                        ) : (
-                          <>
-                            <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
-                            <p className="font-bold text-gray-900">{formatCurrency(total)}</p>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <div className="text-right">
+                      {isNoor && noorEval.loading ? (
+                        <p className="text-xs text-gray-400">—</p>
+                      ) : (
+                        <>
+                          <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
+                          <p className={`font-bold ${noorUnavailable ? 'text-gray-400' : 'text-gray-900'}`}>
+                            {formatCurrency(total)}
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
