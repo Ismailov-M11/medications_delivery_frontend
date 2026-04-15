@@ -101,25 +101,25 @@ export function AdminAnalyticsPage() {
     )
   }
 
-  const ordersByStatusData = analytics?.ordersByStatus
-    ? Object.entries(analytics.ordersByStatus).map(([status, count]) => ({
-        status,
-        label: t(`order.status.${status}`),
-        count,
-        color: STATUS_COLORS[status] || '#6B7280',
+  const ordersByStatusData = Array.isArray(analytics?.ordersByStatus)
+    ? analytics.ordersByStatus.map((item: { status: string; count: number }) => ({
+        status: item.status,
+        label: t(`order.status.${item.status}`),
+        count: item.count,
+        color: STATUS_COLORS[item.status] || '#6B7280',
       }))
     : []
 
-  const ordersByCourierData = analytics?.ordersByCourier
-    ? Object.entries(analytics.ordersByCourier).map(([courier, count]) => ({
-        courier,
-        label: COURIER_LABELS[courier] || courier,
-        count,
-        color: COURIER_COLORS[courier] || '#6B7280',
+  const ordersByCourierData = Array.isArray(analytics?.ordersByCourier)
+    ? analytics.ordersByCourier.map((item: { courier: string; count: number }) => ({
+        courier: item.courier,
+        label: COURIER_LABELS[item.courier] || item.courier,
+        count: item.count,
+        color: COURIER_COLORS[item.courier] || '#6B7280',
       }))
     : []
 
-  const last30DaysData = analytics?.last30Days ?? []
+  const last30DaysData = analytics?.ordersByDay ?? []
 
   return (
     <div className="space-y-6">
