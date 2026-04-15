@@ -12,12 +12,9 @@ export interface AnalyticsData {
   totalMedicinesAmount: number
   totalDeliveryAmount: number
   activePharmacies: number
-  ordersByStatus: Record<string, number>
-  ordersByCourier: Record<string, number>
-  last30Days: Array<{
-    date: string
-    count: number
-  }>
+  ordersByStatus: Array<{ status: string; count: number }>
+  ordersByCourier: Array<{ courier: string; count: number }>
+  ordersByDay: Array<{ date: string; count: number }>
 }
 
 export interface AnalyticsResponse {
