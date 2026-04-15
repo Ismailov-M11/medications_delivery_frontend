@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -101,10 +101,16 @@ export function CustomerOrderPage() {
     onSuccess: (res) => { if (res.success && res.data) setConfirmedOrder(res.data) },
   })
 
-  const { register, handleSubmit, formState: { errors } } = useForm<DetailsForm>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<DetailsForm>({
     resolver: zodResolver(detailsSchema),
-    defaultValues: { customerAddress: mapSelection?.address ?? '' },
   })
+
+  // Pre-fill address when map selection arrives (step transition map → details)
+  useEffect(() => {
+    if (mapSelection?.address) {
+      setValue('customerAddress', mapSelection.address)
+    }
+  }, [mapSelection, setValue])
 
   const onDetailsSubmit = (form: DetailsForm) => {
     const payload = {
@@ -235,9 +241,7 @@ export function CustomerOrderPage() {
           <div className="max-w-lg mx-auto flex items-center gap-2 text-xs">
             <button onClick={() => setStep('map')} className="text-muted-foreground hover:text-gray-700 flex items-center gap-1">
               <ArrowLeft className="h-3 w-3" />
-              {mapSelection
-                ? <span className="text-blue-500 truncate max-w-[150px]">{mapSelection.address}</span>
-                : t('customer.setLocation')}
+              {t('customer.setLocation')}
             </button>
             <ChevronRight className="h-3 w-3 text-gray-300" />
             <span className="font-semibold text-blue-600">{t('customer.step1')}</span>
