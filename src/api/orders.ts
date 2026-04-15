@@ -32,6 +32,10 @@ export interface Order {
   customerName?: string
   customerPhone?: string
   customerAddress?: string
+  apartment?: string
+  entrance?: string
+  floor?: string
+  intercom?: string
   customerComment?: string
   pharmacyName?: string
   pharmacyAddress?: string
@@ -78,6 +82,10 @@ export interface ConfirmOrderPayload {
   customerName: string
   customerPhone: string
   customerAddress: string
+  apartment?: string
+  entrance?: string
+  floor?: string
+  intercom?: string
   customerComment?: string
   customerLat?: number
   customerLng?: number
