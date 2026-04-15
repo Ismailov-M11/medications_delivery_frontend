@@ -62,11 +62,12 @@ interface CourierOption {
   borderColor: string
   deliveryPrice: number
   icon: string
+  logoUrl?: string
 }
 
 const COURIER_OPTIONS: CourierOption[] = [
   { id: 'yandex',     nameKey: 'courier.yandex',     color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-400', deliveryPrice: 3500, icon: '🚖' },
-  { id: 'noor',       nameKey: 'courier.noor',       color: 'text-teal-600',   bgColor: 'bg-teal-50',   borderColor: 'border-teal-400',   deliveryPrice: 3000, icon: '🏍️' },
+  { id: 'noor',       nameKey: 'courier.noor',       color: 'text-orange-500', bgColor: 'bg-orange-50', borderColor: 'border-orange-400', deliveryPrice: 3000, icon: '🏍️', logoUrl: '/noor-logo.png' },
   { id: 'millennium', nameKey: 'courier.millennium', color: 'text-blue-600',   bgColor: 'bg-blue-50',   borderColor: 'border-blue-400',   deliveryPrice: 4000, icon: '🚗' },
 ]
 
@@ -416,7 +417,11 @@ export function CustomerOrderPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{courier.icon}</span>
+                    {courier.logoUrl ? (
+                      <img src={courier.logoUrl} alt={courier.id} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <span className="text-2xl">{courier.icon}</span>
+                    )}
                     <div className="flex-1">
                       <p className={`font-semibold ${courier.color}`}>{t(courier.nameKey)}</p>
                       {isNoor && noorEval.loading ? (
