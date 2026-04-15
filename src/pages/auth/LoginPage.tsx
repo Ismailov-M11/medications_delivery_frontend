@@ -48,6 +48,8 @@ export function LoginPage() {
     mutationFn: pharmacyLogin,
     onSuccess: (response) => {
       if (response.success && response.data) {
+        // Clear all cached data from any previous account before setting new auth
+        queryClient.clear()
         setAuth(response.data.token, response.data.user)
         queryClient.prefetchQuery({
           queryKey: ['pharmacyOrders', 1],
