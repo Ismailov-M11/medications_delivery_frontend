@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Order } from '@/api/orders'
 import {
@@ -10,7 +10,7 @@ import {
 import { StatusBadge } from '@/components/StatusBadge'
 import { YandexMap } from '@/components/YandexMap'
 import { Button } from '@/components/ui/button'
-import { formatCurrency, formatDate, truncateToken } from '@/lib/utils'
+import { formatCurrency, formatDate, truncateToken, buildOrderUrl } from '@/lib/utils'
 import {
   User,
   Phone,
@@ -20,6 +20,9 @@ import {
   DollarSign,
   Clock,
   ExternalLink,
+  Copy,
+  CheckCheck,
+  Link,
   Hash,
 } from 'lucide-react'
 
@@ -61,10 +64,27 @@ export function OrderDetailModal({
   isAdmin = false,
 }: OrderDetailModalProps) {
   const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
 
   if (!order) return null
 
   const showCustomerInfo = order.status !== 'pending'
+  const orderUrl = buildOrderUrl(order.token)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(orderUrl)
+    } catch {
+      const el = document.createElement('textarea')
+      el.value = orderUrl
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -84,6 +104,31 @@ export function OrderDetailModal({
                 #{truncateToken(order.token)}
               </span>
               <StatusBadge status={order.status} />
+            </div>
+          </div>
+
+          {/* Order link — always visible, for sharing with customer */}
+          <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Link className="h-3.5 w-3.5 text-blue-500" />
+              <p className="text-xs font-medium text-blue-600">{t('order.shareLink')}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="flex-1 text-xs font-mono text-blue-700 break-all bg-white border border-blue-100 rounded px-2 py-1.5 select-all">
+                {orderUrl}
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="shrink-0 border-blue-200 hover:bg-blue-100"
+                onClick={handleCopy}
+              >
+                {copied
+                  ? <CheckCheck className="h-4 w-4 text-green-500" />
+                  : <Copy className="h-4 w-4 text-blue-500" />
+                }
+              </Button>
             </div>
           </div>
 

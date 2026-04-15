@@ -134,8 +134,8 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
                 id="medicinesTotal"
                 type="number"
                 min={0}
-                step={100}
-                placeholder="0"
+                step={1}
+                placeholder="50000"
                 {...register('medicinesTotal')}
                 className={errors.medicinesTotal ? 'border-destructive' : ''}
               />
