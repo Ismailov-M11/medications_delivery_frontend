@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { getPharmacyOrders, Order } from '@/api/orders'
@@ -8,7 +8,7 @@ import { CreateOrderModal } from '@/components/CreateOrderModal'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate, truncateToken } from '@/lib/utils'
-import { Plus, RefreshCw, AlertCircle, ShoppingCart } from 'lucide-react'
+import { Plus, RefreshCw, AlertCircle, ShoppingCart, Clock, Truck, CheckCircle2, PackageOpen } from 'lucide-react'
 
 export function PharmacyOrdersPage() {
   const { t } = useTranslation()
@@ -20,8 +20,28 @@ export function PharmacyOrdersPage() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['pharmacyOrders', page],
     queryFn: () => getPharmacyOrders({ page, pageSize: PAGE_SIZE }),
-    refetchInterval: 15000, // auto-refresh every 15 seconds
+    refetchInterval: 15000,
   })
+
+  // Separate query for stats — loads all orders once, refreshes every 30s
+  const { data: statsData } = useQuery({
+    queryKey: ['pharmacyOrdersStats'],
+    queryFn: () => getPharmacyOrders({ page: 1, pageSize: 500 }),
+    refetchInterval: 30000,
+    staleTime: 15000,
+  })
+
+  const stats = useMemo(() => {
+    const all = statsData?.data?.orders ?? []
+    return {
+      pending: all.filter((o) => o.status === 'pending').length,
+      active: all.filter((o) =>
+        ['confirmed', 'courier_pickup', 'courier_picked', 'courier_delivery'].includes(o.status)
+      ).length,
+      delivered: all.filter((o) => o.status === 'delivered').length,
+      total: statsData?.data?.total ?? 0,
+    }
+  }, [statsData])
 
   const orders = data?.data?.orders ?? []
   const total = data?.data?.total ?? 0
@@ -29,6 +49,54 @@ export function PharmacyOrdersPage() {
 
   return (
     <div className="space-y-6">
+      {/* Stats bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="border-0 bg-gray-50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <PackageOpen className="h-5 w-5 text-gray-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('pharmacy.orders')}</p>
+              <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-yellow-50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <Clock className="h-5 w-5 text-yellow-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('order.status.pending')}</p>
+              <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-blue-50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <Truck className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('order.status.courier_delivery')}</p>
+              <p className="text-xl font-bold text-blue-600">{stats.active}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 bg-green-50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2 bg-white rounded-lg shadow-sm">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('order.status.delivered')}</p>
+              <p className="text-xl font-bold text-green-600">{stats.delivered}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
