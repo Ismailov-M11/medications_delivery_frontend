@@ -20,6 +20,7 @@ export function PharmacyOrdersPage() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['pharmacyOrders', page],
     queryFn: () => getPharmacyOrders({ page, pageSize: PAGE_SIZE }),
+    refetchInterval: 15000, // auto-refresh every 15 seconds
   })
 
   const orders = data?.data?.orders ?? []
