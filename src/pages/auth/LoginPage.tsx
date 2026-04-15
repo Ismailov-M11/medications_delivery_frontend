@@ -1,10 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { pharmacyLogin } from '@/api/auth'
+import { getPharmacyOrders } from '@/api/orders'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,14 +27,13 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { setAuth } = useAuthStore()
+  const queryClient = useQueryClient()
   const [showPassword, setShowPassword] = useState(false)
 
   const reason = searchParams.get('reason')
-  const initialError = reason === 'subscription_expired'
-    ? t('auth.subscriptionExpired')
-    : reason === 'inactive'
-      ? t('auth.accountInactive')
-      : null
+  const initialError = reason === 'account_blocked'
+    ? t('auth.accountBlocked')
+    : null
   const [apiError, setApiError] = useState<string | null>(initialError)
 
   const {
@@ -49,17 +49,19 @@ export function LoginPage() {
     onSuccess: (response) => {
       if (response.success && response.data) {
         setAuth(response.data.token, response.data.user)
+        queryClient.prefetchQuery({
+          queryKey: ['pharmacyOrders', 1],
+          queryFn: () => getPharmacyOrders({ page: 1, pageSize: 20 }),
+        })
         navigate('/pharmacy/orders', { replace: true })
       } else {
         setApiError(response.message || t('auth.invalidCredentials'))
       }
     },
     onError: (error: any) => {
-      const msg: string = error?.response?.data?.message || ''
-      if (msg.toLowerCase().includes('subscription')) {
-        setApiError(t('auth.subscriptionExpired'))
-      } else if (msg.toLowerCase().includes('inactive')) {
-        setApiError(t('auth.accountInactive'))
+      const status = error?.response?.status
+      if (status === 403) {
+        setApiError(t('auth.accountBlocked'))
       } else {
         setApiError(t('auth.invalidCredentials'))
       }

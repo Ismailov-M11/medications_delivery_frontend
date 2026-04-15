@@ -70,6 +70,12 @@ export function OrderDetailModal({
 
   const showCustomerInfo = order.status !== 'pending'
   const orderUrl = buildOrderUrl(order.token)
+  const hasRoute =
+    showCustomerInfo &&
+    order.pharmacyLat &&
+    order.pharmacyLng &&
+    order.customerLat &&
+    order.customerLng
 
   const handleCopy = async () => {
     try {
@@ -88,211 +94,210 @@ export function OrderDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-3">
             {t('order.detail')}
+            <span className="font-mono text-sm font-bold text-gray-500">
+              #{truncateToken(order.token)}
+            </span>
+            <StatusBadge status={order.status} />
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Status */}
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm text-muted-foreground">{t('order.token')}</span>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold text-gray-700">
-                #{truncateToken(order.token)}
-              </span>
-              <StatusBadge status={order.status} />
-            </div>
-          </div>
+        <div className="flex gap-6 mt-1">
+          {/* ── Left column: all info ── */}
+          <div className="flex-1 min-w-0 space-y-4">
 
-          {/* Order link — always visible, for sharing with customer */}
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Link className="h-3.5 w-3.5 text-blue-500" />
-              <p className="text-xs font-medium text-blue-600">{t('order.shareLink')}</p>
+            {/* Order share link */}
+            <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Link className="h-3.5 w-3.5 text-blue-500" />
+                <p className="text-xs font-medium text-blue-600">{t('order.shareLink')}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="flex-1 text-xs font-mono text-blue-700 break-all bg-white border border-blue-100 rounded px-2 py-1.5 select-all">
+                  {orderUrl}
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0 border-blue-200 hover:bg-blue-100"
+                  onClick={handleCopy}
+                >
+                  {copied
+                    ? <CheckCheck className="h-4 w-4 text-green-500" />
+                    : <Copy className="h-4 w-4 text-blue-500" />
+                  }
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <p className="flex-1 text-xs font-mono text-blue-700 break-all bg-white border border-blue-100 rounded px-2 py-1.5 select-all">
-                {orderUrl}
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="shrink-0 border-blue-200 hover:bg-blue-100"
-                onClick={handleCopy}
-              >
-                {copied
-                  ? <CheckCheck className="h-4 w-4 text-green-500" />
-                  : <Copy className="h-4 w-4 text-blue-500" />
-                }
-              </Button>
-            </div>
-          </div>
 
-          {/* Admin: pharmacy info */}
-          {isAdmin && order.pharmacyName && (
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-xs text-blue-500 mb-1">{t('pharmacy.pharmacyName')}</p>
-              <p className="text-sm font-semibold text-blue-700">{order.pharmacyName}</p>
-              {order.pharmacyAddress && (
-                <p className="text-xs text-blue-500 mt-0.5">{order.pharmacyAddress}</p>
-              )}
-            </div>
-          )}
+            {/* Admin: pharmacy info */}
+            {isAdmin && order.pharmacyName && (
+              <div className="p-3 bg-indigo-50 rounded-lg">
+                <p className="text-xs text-indigo-500 mb-1">{t('pharmacy.pharmacyName')}</p>
+                <p className="text-sm font-semibold text-indigo-700">{order.pharmacyName}</p>
+                {order.pharmacyAddress && (
+                  <p className="text-xs text-indigo-500 mt-0.5">{order.pharmacyAddress}</p>
+                )}
+              </div>
+            )}
 
-          {/* Medicines */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
-              {t('pharmacy.comment')}
-            </h4>
-            <div className="space-y-1">
-              <InfoRow
-                icon={<MessageSquare className="h-4 w-4" />}
-                label={t('order.comment')}
-                value={order.pharmacyComment || '—'}
-              />
-              <InfoRow
-                icon={<DollarSign className="h-4 w-4" />}
-                label={t('order.medicinesAmount')}
-                value={formatCurrency(order.medicinesTotal)}
-              />
-              {order.deliveryPrice !== undefined && (
+            {/* Medicines / amounts */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                {t('pharmacy.comment')}
+              </h4>
+              <div className="space-y-0">
                 <InfoRow
-                  icon={<Truck className="h-4 w-4" />}
-                  label={t('order.deliveryPrice')}
-                  value={formatCurrency(order.deliveryPrice)}
+                  icon={<MessageSquare className="h-4 w-4" />}
+                  label={t('order.comment')}
+                  value={order.pharmacyComment || '—'}
                 />
-              )}
-              {order.totalPrice !== undefined && (
                 <InfoRow
                   icon={<DollarSign className="h-4 w-4" />}
-                  label={t('order.totalPrice')}
-                  value={
-                    <span className="text-blue-600 font-bold">
-                      {formatCurrency(order.totalPrice)}
-                    </span>
-                  }
+                  label={t('order.medicinesAmount')}
+                  value={formatCurrency(order.medicinesTotal)}
                 />
-              )}
-              <InfoRow
-                icon={<Clock className="h-4 w-4" />}
-                label={t('order.createdAt')}
-                value={formatDate(order.createdAt)}
-              />
-            </div>
-          </div>
-
-          {/* Customer Info (shown when status > pending) */}
-          {showCustomerInfo && (
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                {t('order.customerInfo')}
-              </h4>
-              <div className="space-y-1">
-                {order.customerName && (
+                {order.deliveryPrice !== undefined && (
                   <InfoRow
-                    icon={<User className="h-4 w-4" />}
-                    label={t('customer.name')}
-                    value={order.customerName}
+                    icon={<Truck className="h-4 w-4" />}
+                    label={t('order.deliveryPrice')}
+                    value={formatCurrency(order.deliveryPrice)}
                   />
                 )}
-                {order.customerPhone && (
+                {order.totalPrice !== undefined && (
                   <InfoRow
-                    icon={<Phone className="h-4 w-4" />}
-                    label={t('customer.phone')}
+                    icon={<DollarSign className="h-4 w-4" />}
+                    label={t('order.totalPrice')}
                     value={
-                      <a
-                        href={`tel:${order.customerPhone}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {order.customerPhone}
-                      </a>
+                      <span className="text-blue-600 font-bold">
+                        {formatCurrency(order.totalPrice)}
+                      </span>
                     }
                   />
                 )}
-                {order.customerAddress && (
-                  <InfoRow
-                    icon={<MapPin className="h-4 w-4" />}
-                    label={t('customer.address')}
-                    value={order.customerAddress}
-                  />
-                )}
-                {order.customerComment && (
-                  <InfoRow
-                    icon={<MessageSquare className="h-4 w-4" />}
-                    label={t('customer.comment')}
-                    value={order.customerComment}
-                  />
-                )}
+                <InfoRow
+                  icon={<Clock className="h-4 w-4" />}
+                  label={t('order.createdAt')}
+                  value={formatDate(order.createdAt)}
+                />
               </div>
             </div>
-          )}
 
-          {/* Courier Info */}
-          {order.courier && (
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                {t('order.courierInfo')}
-              </h4>
-              <InfoRow
-                icon={<Truck className="h-4 w-4" />}
-                label={t('order.courierInfo')}
-                value={COURIER_LABELS[order.courier] || order.courier}
-              />
-            </div>
-          )}
-
-          {/* Route map */}
-          {showCustomerInfo &&
-            order.pharmacyLat &&
-            order.pharmacyLng &&
-            order.customerLat &&
-            order.customerLng && (
+            {/* Customer info */}
+            {showCustomerInfo && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                  {t('customer.setLocation')}
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                  {t('order.customerInfo')}
                 </h4>
-                <YandexMap
-                  pharmacyCoords={[order.pharmacyLat, order.pharmacyLng]}
-                  customerCoords={[order.customerLat, order.customerLng]}
-                  readOnly
-                  height="220px"
+                <div className="space-y-0">
+                  {order.customerName && (
+                    <InfoRow
+                      icon={<User className="h-4 w-4" />}
+                      label={t('customer.name')}
+                      value={order.customerName}
+                    />
+                  )}
+                  {order.customerPhone && (
+                    <InfoRow
+                      icon={<Phone className="h-4 w-4" />}
+                      label={t('customer.phone')}
+                      value={
+                        <a
+                          href={`tel:${order.customerPhone}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {order.customerPhone}
+                        </a>
+                      }
+                    />
+                  )}
+                  {order.customerAddress && (
+                    <InfoRow
+                      icon={<MapPin className="h-4 w-4" />}
+                      label={t('customer.address')}
+                      value={order.customerAddress}
+                    />
+                  )}
+                  {order.customerComment && (
+                    <InfoRow
+                      icon={<MessageSquare className="h-4 w-4" />}
+                      label={t('customer.comment')}
+                      value={order.customerComment}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Courier info */}
+            {order.courier && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                  {t('order.courierInfo')}
+                </h4>
+                <InfoRow
+                  icon={<Truck className="h-4 w-4" />}
+                  label={t('order.courierInfo')}
+                  value={COURIER_LABELS[order.courier] || order.courier}
                 />
               </div>
             )}
 
-          {/* Tracking URL */}
-          {order.trackingUrl && (
-            <div className="p-3 bg-green-50 rounded-lg">
-              <p className="text-xs text-green-600 mb-1">{t('order.trackingUrl')}</p>
-              <a
-                href={order.trackingUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-green-700 font-medium hover:underline break-all"
-              >
-                <ExternalLink className="h-4 w-4 flex-shrink-0" />
-                {order.trackingUrl}
-              </a>
-            </div>
-          )}
+            {/* Tracking URL */}
+            {order.trackingUrl && (
+              <div className="p-3 bg-green-50 rounded-lg">
+                <p className="text-xs text-green-600 mb-1">{t('order.trackingUrl')}</p>
+                <a
+                  href={order.trackingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-green-700 font-medium hover:underline break-all"
+                >
+                  <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                  {order.trackingUrl}
+                </a>
+              </div>
+            )}
 
-          {/* Order token full */}
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-              <Hash className="h-3 w-3" />
-              {t('order.token')} (full)
-            </p>
-            <p className="font-mono text-xs text-gray-500 break-all">{order.token}</p>
+            {/* Order token full */}
+            <div className="p-2 bg-gray-50 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                <Hash className="h-3 w-3" />
+                {t('order.token')} (full)
+              </p>
+              <p className="font-mono text-xs text-gray-400 break-all">{order.token}</p>
+            </div>
           </div>
 
-          <Button variant="outline" className="w-full" onClick={onClose}>
-            {t('common.close')}
-          </Button>
+          {/* ── Right column: map ── */}
+          <div className="w-[340px] flex-shrink-0 flex flex-col gap-3">
+            {hasRoute ? (
+              <>
+                <h4 className="text-sm font-semibold text-gray-700">
+                  {t('customer.setLocation')}
+                </h4>
+                <YandexMap
+                  pharmacyCoords={[order.pharmacyLat!, order.pharmacyLng!]}
+                  customerCoords={[order.customerLat!, order.customerLng!]}
+                  readOnly
+                  height="340px"
+                />
+              </>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-muted-foreground text-center bg-gray-50 rounded-lg p-6">
+                {t('customer.locationInstruction')}
+              </div>
+            )}
+          </div>
         </div>
+
+        <Button variant="outline" className="w-full mt-4" onClick={onClose}>
+          {t('common.close')}
+        </Button>
       </DialogContent>
     </Dialog>
   )

@@ -27,18 +27,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status
-    const msg: string = error.response?.data?.message || ''
 
     if (status === 401) {
       useAuthStore.getState().logout()
       window.location.href = '/login'
     } else if (status === 403) {
       useAuthStore.getState().logout()
-      if (msg.toLowerCase().includes('subscription')) {
-        window.location.href = '/login?reason=subscription_expired'
-      } else {
-        window.location.href = '/login?reason=inactive'
-      }
+      window.location.href = '/login?reason=account_blocked'
     }
 
     return Promise.reject(error)
