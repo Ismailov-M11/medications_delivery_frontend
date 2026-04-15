@@ -96,13 +96,9 @@ export function CustomerMap({ initialCenter, onConfirm }: CustomerMapProps) {
               suppressMapOpenBlock: true,
               suppressObsoleteBrowserNotifier: true,
               restrictMapArea: TASHKENT_BOUNDS,
-              yandexMapDisablePoiInteractivity: false,
             },
           )
           mapRef.current = map
-
-          // Remove anything that still sneaks in
-          map.controls.removeAll()
 
           // Geocode initial center
           geocode(coords)
