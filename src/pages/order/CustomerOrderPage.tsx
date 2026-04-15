@@ -438,18 +438,12 @@ export function CustomerOrderPage() {
                         </p>
                       )}
                     </div>
-                    <div className="text-right">
-                      {isNoor && noorEval.loading ? (
-                        <p className="text-xs text-gray-400">—</p>
-                      ) : (
-                        <>
-                          <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
-                          <p className={`font-bold ${noorUnavailable ? 'text-gray-400' : 'text-gray-900'}`}>
-                            {formatCurrency(total)}
-                          </p>
-                        </>
-                      )}
-                    </div>
+                    {isSelected && !noorUnavailable && (
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">{t('courier.total')}</p>
+                        <p className="font-bold text-gray-900">{formatCurrency(total)}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
