@@ -57,6 +57,8 @@ const editPharmacySchema = z.object({
   isActive: z.boolean(),
   lat: z.coerce.number().optional(),
   lng: z.coerce.number().optional(),
+  login: z.string().optional(),
+  newPassword: z.string().optional(),
 })
 
 type EditPharmacyForm = z.infer<typeof editPharmacySchema>
@@ -171,18 +173,18 @@ export function AdminPharmaciesPage() {
 
   const onEditSubmit = (data: EditPharmacyForm) => {
     if (!editPharmacy) return
-    updateMutation.mutate({
-      id: editPharmacy.id,
-      payload: {
-        name: data.name,
-        address: data.address,
-        phone: data.phone,
-        subscriptionExpiry: data.subscriptionExpiry,
-        isActive: data.isActive,
-        lat: data.lat,
-        lng: data.lng,
-      },
-    })
+    const payload: Partial<CreatePharmacyPayload> & { isActive?: boolean } = {
+      name: data.name,
+      address: data.address,
+      phone: data.phone,
+      subscriptionExpiry: data.subscriptionExpiry,
+      isActive: data.isActive,
+      lat: data.lat,
+      lng: data.lng,
+    }
+    if (data.login && data.login.trim()) payload.login = data.login.trim()
+    if (data.newPassword && data.newPassword.trim()) payload.password = data.newPassword.trim()
+    updateMutation.mutate({ id: editPharmacy.id, payload })
   }
 
   const openEditModal = (pharmacy: Pharmacy) => {
@@ -607,6 +609,27 @@ export function AdminPharmaciesPage() {
                   <Label htmlFor="editIsActive" className="cursor-pointer select-none">
                     {t('pharmacies.active')}
                   </Label>
+                </div>
+
+                {/* Login / Password change */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.login')}</Label>
+                    <Input
+                      {...registerEdit('login')}
+                      autoComplete="off"
+                      placeholder={editPharmacy?.login ?? ''}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.password')}</Label>
+                    <Input
+                      {...registerEdit('newPassword')}
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Оставьте пустым — без изменений"
+                    />
+                  </div>
                 </div>
 
                 {/* Coordinates */}
