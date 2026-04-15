@@ -32,7 +32,6 @@ import {
   RefreshCw,
   AlertCircle,
   Building2,
-  Calendar,
   CheckCircle2,
   XCircle,
 } from 'lucide-react'
@@ -50,11 +49,17 @@ const createPharmacySchema = z.object({
 
 type CreatePharmacyForm = z.infer<typeof createPharmacySchema>
 
-const editSubscriptionSchema = z.object({
+const editPharmacySchema = z.object({
+  name: z.string().min(1, 'required'),
+  address: z.string().min(1, 'required'),
+  phone: z.string().min(7, 'invalidPhone'),
   subscriptionExpiry: z.string().min(1, 'required'),
+  isActive: z.boolean(),
+  lat: z.coerce.number().optional(),
+  lng: z.coerce.number().optional(),
 })
 
-type EditSubscriptionForm = z.infer<typeof editSubscriptionSchema>
+type EditPharmacyForm = z.infer<typeof editPharmacySchema>
 
 export function AdminPharmaciesPage() {
   const { t } = useTranslation()
@@ -82,7 +87,7 @@ export function AdminPharmaciesPage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: { subscriptionExpiry: string } }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<CreatePharmacyPayload> & { isActive?: boolean } }) =>
       updatePharmacy(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pharmacies'] })
@@ -133,10 +138,22 @@ export function AdminPharmaciesPage() {
     handleSubmit: handleEditSubmit,
     reset: resetEdit,
     setValue: setEditValue,
+    watch: watchEdit,
     formState: { errors: editErrors },
-  } = useForm<EditSubscriptionForm>({
-    resolver: zodResolver(editSubscriptionSchema),
+  } = useForm<EditPharmacyForm>({
+    resolver: zodResolver(editPharmacySchema),
   })
+
+  const watchedEditLat = watchEdit('lat')
+  const watchedEditLng = watchEdit('lng')
+  const editControlledCoords: [number, number] | undefined =
+    watchedEditLat && watchedEditLng ? [watchedEditLat, watchedEditLng] : undefined
+
+  const handleEditMapSelect = (coords: [number, number], address: string) => {
+    setEditValue('lat', coords[0])
+    setEditValue('lng', coords[1])
+    setEditValue('address', address)
+  }
 
   const onCreateSubmit = (data: CreatePharmacyForm) => {
     const payload: CreatePharmacyPayload = {
@@ -152,20 +169,35 @@ export function AdminPharmaciesPage() {
     createMutation.mutate(payload)
   }
 
-  const onEditSubmit = (data: EditSubscriptionForm) => {
+  const onEditSubmit = (data: EditPharmacyForm) => {
     if (!editPharmacy) return
     updateMutation.mutate({
       id: editPharmacy.id,
-      payload: { subscriptionExpiry: data.subscriptionExpiry },
+      payload: {
+        name: data.name,
+        address: data.address,
+        phone: data.phone,
+        subscriptionExpiry: data.subscriptionExpiry,
+        isActive: data.isActive,
+        lat: data.lat,
+        lng: data.lng,
+      },
     })
   }
 
   const openEditModal = (pharmacy: Pharmacy) => {
     setEditPharmacy(pharmacy)
-    const dateStr = pharmacy.subscriptionExpiry
-      ? pharmacy.subscriptionExpiry.split('T')[0]
-      : ''
-    setEditValue('subscriptionExpiry', dateStr)
+    resetEdit({
+      name: pharmacy.name,
+      address: pharmacy.address,
+      phone: pharmacy.phone,
+      subscriptionExpiry: pharmacy.subscriptionExpiry
+        ? pharmacy.subscriptionExpiry.split('T')[0]
+        : '',
+      isActive: pharmacy.isActive,
+      lat: pharmacy.lat ?? undefined,
+      lng: pharmacy.lng ?? undefined,
+    })
   }
 
   const handleCloseCreate = () => {
@@ -269,7 +301,11 @@ export function AdminPharmaciesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {pharmacies.map((pharmacy) => (
-                    <tr key={pharmacy.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={pharmacy.id}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => openEditModal(pharmacy)}
+                    >
                       <td className="px-4 py-3">
                         <p className="text-sm font-semibold text-gray-900">
                           {pharmacy.name}
@@ -302,16 +338,8 @@ export function AdminPharmaciesPage() {
                           ? formatDate(pharmacy.subscriptionExpiry).split(',')[0]
                           : '—'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditModal(pharmacy)}
-                          >
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {t('pharmacies.editSubscription')}
-                          </Button>
                           <Button
                             variant={pharmacy.isActive ? 'destructive' : 'default'}
                             size="sm"
@@ -495,12 +523,12 @@ export function AdminPharmaciesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Subscription Modal */}
+      {/* Edit Pharmacy Modal */}
       <Dialog open={!!editPharmacy} onOpenChange={(o) => !o && handleCloseEdit()}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {t('pharmacies.editSubscription')}
+              {t('pharmacies.editPharmacy')}
               {editPharmacy && (
                 <span className="text-base font-normal text-muted-foreground ml-2">
                   — {editPharmacy.name}
@@ -508,33 +536,134 @@ export function AdminPharmaciesPage() {
               )}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleEditSubmit(onEditSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('pharmacies.subscriptionExpiry')}</Label>
-              <Input
-                {...registerEdit('subscriptionExpiry')}
-                type="date"
-                className={editErrors.subscriptionExpiry ? 'border-destructive' : ''}
-              />
-              {editErrors.subscriptionExpiry && (
-                <p className="text-xs text-destructive">
-                  {t(`validation.${editErrors.subscriptionExpiry.message || 'required'}`)}
+          <form onSubmit={handleEditSubmit(onEditSubmit)}>
+            <div className="flex gap-6">
+              {/* Left — form fields */}
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="space-y-1">
+                  <Label>{t('pharmacies.name')}</Label>
+                  <Input
+                    {...registerEdit('name')}
+                    className={editErrors.name ? 'border-destructive' : ''}
+                  />
+                  {editErrors.name && (
+                    <p className="text-xs text-destructive">
+                      {t(`validation.${editErrors.name.message || 'required'}`)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Label>{t('pharmacies.address')}</Label>
+                  <Input
+                    {...registerEdit('address')}
+                    className={editErrors.address ? 'border-destructive' : ''}
+                  />
+                  {editErrors.address && (
+                    <p className="text-xs text-destructive">
+                      {t(`validation.${editErrors.address.message || 'required'}`)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.phone')}</Label>
+                    <Input
+                      {...registerEdit('phone')}
+                      type="tel"
+                      className={editErrors.phone ? 'border-destructive' : ''}
+                    />
+                    {editErrors.phone && (
+                      <p className="text-xs text-destructive">
+                        {t(`validation.${editErrors.phone.message || 'required'}`)}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.subscriptionExpiry')}</Label>
+                    <Input
+                      {...registerEdit('subscriptionExpiry')}
+                      type="date"
+                      className={editErrors.subscriptionExpiry ? 'border-destructive' : ''}
+                    />
+                    {editErrors.subscriptionExpiry && (
+                      <p className="text-xs text-destructive">
+                        {t(`validation.${editErrors.subscriptionExpiry.message || 'required'}`)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Active toggle */}
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="editIsActive"
+                    {...registerEdit('isActive')}
+                    className="h-4 w-4 rounded border-gray-300 accent-blue-600"
+                  />
+                  <Label htmlFor="editIsActive" className="cursor-pointer select-none">
+                    {t('pharmacies.active')}
+                  </Label>
+                </div>
+
+                {/* Coordinates */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {t('pharmacies.coordinates')} — заполнятся с карты
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t('pharmacies.latitude')}</Label>
+                      <Input
+                        {...registerEdit('lat')}
+                        type="number"
+                        step="0.000001"
+                        placeholder="41.2995"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t('pharmacies.longitude')}</Label>
+                      <Input
+                        {...registerEdit('lng')}
+                        type="number"
+                        step="0.000001"
+                        placeholder="69.2401"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCloseEdit}
+                    disabled={updateMutation.isPending}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                  <Button type="submit" disabled={updateMutation.isPending}>
+                    {updateMutation.isPending ? t('common.loading') : t('common.save')}
+                  </Button>
+                </DialogFooter>
+              </div>
+
+              {/* Right — Yandex Map */}
+              <div className="w-[420px] flex-shrink-0">
+                <p className="text-xs text-muted-foreground mb-1">
+                  Найдите адрес или кликните на карте
                 </p>
-              )}
+                <YandexMap
+                  onLocationSelect={handleEditMapSelect}
+                  controlledCoords={editControlledCoords}
+                  showSearch
+                  height="420px"
+                />
+              </div>
             </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseEdit}
-                disabled={updateMutation.isPending}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? t('common.loading') : t('common.save')}
-              </Button>
-            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

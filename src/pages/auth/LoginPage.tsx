@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { pharmacyLogin } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
@@ -24,9 +24,17 @@ type LoginForm = z.infer<typeof loginSchema>
 export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { setAuth } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
-  const [apiError, setApiError] = useState<string | null>(null)
+
+  const reason = searchParams.get('reason')
+  const initialError = reason === 'subscription_expired'
+    ? t('auth.subscriptionExpired')
+    : reason === 'inactive'
+      ? t('auth.accountInactive')
+      : null
+  const [apiError, setApiError] = useState<string | null>(initialError)
 
   const {
     register,
@@ -46,8 +54,15 @@ export function LoginPage() {
         setApiError(response.message || t('auth.invalidCredentials'))
       }
     },
-    onError: () => {
-      setApiError(t('auth.invalidCredentials'))
+    onError: (error: any) => {
+      const msg: string = error?.response?.data?.message || ''
+      if (msg.toLowerCase().includes('subscription')) {
+        setApiError(t('auth.subscriptionExpired'))
+      } else if (msg.toLowerCase().includes('inactive')) {
+        setApiError(t('auth.accountInactive'))
+      } else {
+        setApiError(t('auth.invalidCredentials'))
+      }
     },
   })
 
