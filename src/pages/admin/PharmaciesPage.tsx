@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { YandexMap } from '@/components/YandexMap'
 import { toast } from '@/hooks/useToast'
 import { formatDate } from '@/lib/utils'
 import {
@@ -109,10 +110,23 @@ export function AdminPharmaciesPage() {
     register: registerCreate,
     handleSubmit: handleCreateSubmit,
     reset: resetCreate,
+    setValue: setCreateValue,
+    watch: watchCreate,
     formState: { errors: createErrors },
   } = useForm<CreatePharmacyForm>({
     resolver: zodResolver(createPharmacySchema),
   })
+
+  const watchedLat = watchCreate('lat')
+  const watchedLng = watchCreate('lng')
+  const controlledCoords: [number, number] | undefined =
+    watchedLat && watchedLng ? [watchedLat, watchedLng] : undefined
+
+  const handleMapSelect = (coords: [number, number], address: string) => {
+    setCreateValue('lat', coords[0])
+    setCreateValue('lng', coords[1])
+    setCreateValue('address', address)
+  }
 
   const {
     register: registerEdit,
@@ -326,136 +340,157 @@ export function AdminPharmaciesPage() {
 
       {/* Create Pharmacy Modal */}
       <Dialog open={createModalOpen} onOpenChange={(o) => !o && handleCloseCreate()}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('pharmacies.addPharmacy')}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreateSubmit(onCreateSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1 sm:col-span-2">
-                <Label>{t('pharmacies.name')}</Label>
-                <Input
-                  {...registerCreate('name')}
-                  className={createErrors.name ? 'border-destructive' : ''}
-                />
-                {createErrors.name && (
-                  <p className="text-xs text-destructive">
-                    {t(`validation.${createErrors.name.message || 'required'}`)}
+          <form onSubmit={handleCreateSubmit(onCreateSubmit)}>
+            <div className="flex gap-6">
+              {/* Left — form fields */}
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="space-y-1">
+                  <Label>{t('pharmacies.name')}</Label>
+                  <Input
+                    {...registerCreate('name')}
+                    className={createErrors.name ? 'border-destructive' : ''}
+                  />
+                  {createErrors.name && (
+                    <p className="text-xs text-destructive">
+                      {t(`validation.${createErrors.name.message || 'required'}`)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Label>{t('pharmacies.address')}</Label>
+                  <Input
+                    {...registerCreate('address')}
+                    placeholder="Заполнится автоматически с карты"
+                    className={createErrors.address ? 'border-destructive' : ''}
+                  />
+                  {createErrors.address && (
+                    <p className="text-xs text-destructive">
+                      {t(`validation.${createErrors.address.message || 'required'}`)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.phone')}</Label>
+                    <Input
+                      {...registerCreate('phone')}
+                      type="tel"
+                      className={createErrors.phone ? 'border-destructive' : ''}
+                    />
+                    {createErrors.phone && (
+                      <p className="text-xs text-destructive">
+                        {t(`validation.${createErrors.phone.message || 'required'}`)}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.subscriptionExpiry')}</Label>
+                    <Input
+                      {...registerCreate('subscriptionExpiry')}
+                      type="date"
+                      className={createErrors.subscriptionExpiry ? 'border-destructive' : ''}
+                    />
+                    {createErrors.subscriptionExpiry && (
+                      <p className="text-xs text-destructive">
+                        {t(`validation.${createErrors.subscriptionExpiry.message || 'required'}`)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.login')}</Label>
+                    <Input
+                      {...registerCreate('login')}
+                      autoComplete="off"
+                      className={createErrors.login ? 'border-destructive' : ''}
+                    />
+                    {createErrors.login && (
+                      <p className="text-xs text-destructive">
+                        {t(`validation.${createErrors.login.message || 'required'}`)}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>{t('pharmacies.password')}</Label>
+                    <Input
+                      {...registerCreate('password')}
+                      type="password"
+                      autoComplete="new-password"
+                      className={createErrors.password ? 'border-destructive' : ''}
+                    />
+                    {createErrors.password && (
+                      <p className="text-xs text-destructive">
+                        {t(`validation.${createErrors.password.message || 'required'}`)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Coordinates — filled from map, editable manually */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {t('pharmacies.coordinates')} — заполнятся с карты
                   </p>
-                )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t('pharmacies.latitude')}</Label>
+                      <Input
+                        {...registerCreate('lat')}
+                        type="number"
+                        step="0.000001"
+                        placeholder="41.2995"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t('pharmacies.longitude')}</Label>
+                      <Input
+                        {...registerCreate('lng')}
+                        type="number"
+                        step="0.000001"
+                        placeholder="69.2401"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCloseCreate}
+                    disabled={createMutation.isPending}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? t('common.loading') : t('common.save')}
+                  </Button>
+                </DialogFooter>
               </div>
 
-              <div className="space-y-1 sm:col-span-2">
-                <Label>{t('pharmacies.address')}</Label>
-                <Input
-                  {...registerCreate('address')}
-                  className={createErrors.address ? 'border-destructive' : ''}
+              {/* Right — Yandex Map */}
+              <div className="w-[420px] flex-shrink-0">
+                <p className="text-xs text-muted-foreground mb-1">
+                  Найдите адрес или кликните на карте
+                </p>
+                <YandexMap
+                  onLocationSelect={handleMapSelect}
+                  controlledCoords={controlledCoords}
+                  showSearch
+                  height="420px"
                 />
-                {createErrors.address && (
-                  <p className="text-xs text-destructive">
-                    {t(`validation.${createErrors.address.message || 'required'}`)}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <Label>{t('pharmacies.phone')}</Label>
-                <Input
-                  {...registerCreate('phone')}
-                  type="tel"
-                  className={createErrors.phone ? 'border-destructive' : ''}
-                />
-                {createErrors.phone && (
-                  <p className="text-xs text-destructive">
-                    {t(`validation.${createErrors.phone.message || 'required'}`)}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <Label>{t('pharmacies.subscriptionExpiry')}</Label>
-                <Input
-                  {...registerCreate('subscriptionExpiry')}
-                  type="date"
-                  className={createErrors.subscriptionExpiry ? 'border-destructive' : ''}
-                />
-                {createErrors.subscriptionExpiry && (
-                  <p className="text-xs text-destructive">
-                    {t(`validation.${createErrors.subscriptionExpiry.message || 'required'}`)}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <Label>{t('pharmacies.login')}</Label>
-                <Input
-                  {...registerCreate('login')}
-                  autoComplete="off"
-                  className={createErrors.login ? 'border-destructive' : ''}
-                />
-                {createErrors.login && (
-                  <p className="text-xs text-destructive">
-                    {t(`validation.${createErrors.login.message || 'required'}`)}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <Label>{t('pharmacies.password')}</Label>
-                <Input
-                  {...registerCreate('password')}
-                  type="password"
-                  autoComplete="new-password"
-                  className={createErrors.password ? 'border-destructive' : ''}
-                />
-                {createErrors.password && (
-                  <p className="text-xs text-destructive">
-                    {t(`validation.${createErrors.password.message || 'required'}`)}
-                  </p>
-                )}
               </div>
             </div>
-
-            {/* Coordinates */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                {t('pharmacies.coordinates')}
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>{t('pharmacies.latitude')}</Label>
-                  <Input
-                    {...registerCreate('lat')}
-                    type="number"
-                    step="0.000001"
-                    placeholder="41.2995"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label>{t('pharmacies.longitude')}</Label>
-                  <Input
-                    {...registerCreate('lng')}
-                    type="number"
-                    step="0.000001"
-                    placeholder="69.2401"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseCreate}
-                disabled={createMutation.isPending}
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? t('common.loading') : t('common.save')}
-              </Button>
-            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
