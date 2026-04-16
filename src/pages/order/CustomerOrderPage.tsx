@@ -10,7 +10,9 @@ import {
   confirmOrderByToken,
   selectCourierByToken,
   evaluateNoor,
+  evaluateMillennium,
   NoorEvalResult,
+  MillenniumEvalResult,
   Order,
   CourierType,
 } from '@/api/orders'
@@ -68,7 +70,7 @@ interface CourierOption {
 const COURIER_OPTIONS: CourierOption[] = [
   { id: 'yandex',     nameKey: 'courier.yandex',     color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-400', deliveryPrice: 3500, icon: '🚖' },
   { id: 'noor',       nameKey: 'courier.noor',       color: 'text-orange-500', bgColor: 'bg-orange-50', borderColor: 'border-orange-400', deliveryPrice: 3000, icon: '🏍️', logoUrl: '/noor-logo.png' },
-  { id: 'millennium', nameKey: 'courier.millennium', color: 'text-blue-600',   bgColor: 'bg-blue-50',   borderColor: 'border-blue-400',   deliveryPrice: 4000, icon: '🚗' },
+  { id: 'millennium', nameKey: 'courier.millennium', color: 'text-red-600',   bgColor: 'bg-red-50',   borderColor: 'border-red-400',   deliveryPrice: 4000, icon: '🚗', logoUrl: '/millennium-logo.png' },
 ]
 
 type Step = 'map' | 'details' | 'courier'
@@ -83,6 +85,10 @@ export function CustomerOrderPage() {
   const [selectedCourier, setSelectedCourier] = useState<CourierType | null>(null)
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
   const [noorEval, setNoorEval] = useState<{ loading: boolean; result: NoorEvalResult | null }>({
+    loading: false,
+    result: null,
+  })
+  const [millenniumEval, setMillenniumEval] = useState<{ loading: boolean; result: MillenniumEvalResult | null }>({
     loading: false,
     result: null,
   })
@@ -112,13 +118,19 @@ export function CustomerOrderPage() {
     resolver: zodResolver(detailsSchema),
   })
 
-  // Call Noor evaluate as soon as we enter the courier step
+  // Call Noor & Millennium evaluate as soon as we enter the courier step
   useEffect(() => {
     if (step !== 'courier' || !token) return
+
     setNoorEval({ loading: true, result: null })
     evaluateNoor(token)
       .then((res) => setNoorEval({ loading: false, result: res.data }))
       .catch(() => setNoorEval({ loading: false, result: { available: false, stage: 0, price: null, error: 'Ошибка соединения с Noor' } }))
+
+    setMillenniumEval({ loading: true, result: null })
+    evaluateMillennium(token)
+      .then((res) => setMillenniumEval({ loading: false, result: res.data }))
+      .catch(() => setMillenniumEval({ loading: false, result: { available: false, price: null, error: 'Ошибка соединения с Millennium' } }))
   }, [step, token])
 
   // Pre-fill address when map selection arrives (step transition map → details)
@@ -152,6 +164,8 @@ export function CustomerOrderPage() {
     const deliveryPrice =
       selectedCourier === 'noor' && noorEval.result?.price != null
         ? noorEval.result.price
+        : selectedCourier === 'millennium' && millenniumEval.result?.price != null
+        ? millenniumEval.result.price
         : opt.deliveryPrice
     courierMutation.mutate({ courier: selectedCourier, deliveryPrice })
   }
@@ -390,28 +404,38 @@ export function CustomerOrderPage() {
           <p className="text-sm font-semibold text-gray-700">{t('customer.chooseCourier')}</p>
           <div className="space-y-3">
             {COURIER_OPTIONS.map((courier) => {
-              // For Noor — use real price from evaluate if available
               const isNoor = courier.id === 'noor'
+              const isMillennium = courier.id === 'millennium'
+
+              // Noor
               const noorUnavailable = isNoor && !noorEval.loading && noorEval.result?.available === false
-              // Show real price even when unavailable (Noor returns total_delivery_price for all stages)
               const noorPrice = isNoor && noorEval.result?.price != null ? noorEval.result.price : courier.deliveryPrice
-              const effectivePrice = isNoor ? noorPrice : courier.deliveryPrice
+
+              // Millennium
+              const millenniumUnavailable = isMillennium && !millenniumEval.loading && millenniumEval.result?.available === false
+              const millenniumPrice = isMillennium && millenniumEval.result?.price != null ? millenniumEval.result.price : courier.deliveryPrice
+
+              const evalLoading = (isNoor && noorEval.loading) || (isMillennium && millenniumEval.loading)
+              const unavailable = noorUnavailable || millenniumUnavailable
+              const evalError = isNoor ? noorEval.result?.error : isMillennium ? millenniumEval.result?.error : null
+
+              const effectivePrice = isNoor ? noorPrice : isMillennium ? millenniumPrice : courier.deliveryPrice
               const isSelected = selectedCourier === courier.id
 
               return (
                 <div
                   key={courier.id}
-                  onClick={() => !noorUnavailable && setSelectedCourier(courier.id)}
+                  onClick={() => !unavailable && setSelectedCourier(courier.id)}
                   className={cn(
                     'relative p-4 rounded-xl border-2 transition-all bg-white',
-                    noorUnavailable
+                    unavailable
                       ? 'opacity-50 cursor-not-allowed border-gray-200'
                       : 'cursor-pointer',
-                    !noorUnavailable && isSelected ? `${courier.bgColor} ${courier.borderColor}` : '',
-                    !noorUnavailable && !isSelected ? 'border-gray-200 hover:border-gray-300' : '',
+                    !unavailable && isSelected ? `${courier.bgColor} ${courier.borderColor}` : '',
+                    !unavailable && !isSelected ? 'border-gray-200 hover:border-gray-300' : '',
                   )}
                 >
-                  {isSelected && !noorUnavailable && (
+                  {isSelected && !unavailable && (
                     <div className="absolute top-3 right-3">
                       <CheckCircle2 className={`h-5 w-5 ${courier.color}`} />
                     </div>
@@ -424,9 +448,9 @@ export function CustomerOrderPage() {
                     )}
                     <div className="flex-1">
                       <p className={`font-semibold ${courier.color}`}>{t(courier.nameKey)}</p>
-                      {isNoor && noorEval.loading ? (
+                      {evalLoading ? (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <span className="h-3 w-3 border border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
+                          <span className="h-3 w-3 border border-gray-400 border-t-transparent rounded-full animate-spin inline-block" />
                           Рассчитываем стоимость...
                         </p>
                       ) : (
@@ -434,8 +458,8 @@ export function CustomerOrderPage() {
                           <p className="text-xs text-muted-foreground">
                             {t('courier.deliveryPrice')}: {formatCurrency(effectivePrice)}
                           </p>
-                          {noorUnavailable && noorEval.result?.error && (
-                            <p className="text-xs text-red-400 mt-0.5">{noorEval.result.error}</p>
+                          {unavailable && evalError && (
+                            <p className="text-xs text-red-400 mt-0.5">{evalError}</p>
                           )}
                         </>
                       )}
@@ -455,6 +479,8 @@ export function CustomerOrderPage() {
                   const summaryDelivery =
                     selectedCourier === 'noor' && noorEval.result?.price != null
                       ? noorEval.result.price
+                      : selectedCourier === 'millennium' && millenniumEval.result?.price != null
+                      ? millenniumEval.result.price
                       : selectedCourierOption.deliveryPrice
                   return (
                     <>

@@ -155,3 +155,16 @@ export const evaluateNoor = async (
   const { data } = await apiClient.post(`/api/orders/${token}/noor/evaluate`)
   return data
 }
+
+export interface MillenniumEvalResult {
+  available: boolean
+  price: number | null
+  error?: string | null
+}
+
+export const evaluateMillennium = async (
+  token: string,
+): Promise<{ success: boolean; data: MillenniumEvalResult }> => {
+  const { data } = await apiClient.post(`/api/orders/${token}/millennium/evaluate`)
+  return data
+}
