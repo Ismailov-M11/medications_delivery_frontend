@@ -8,6 +8,7 @@ import { AdminAnalyticsPage } from '@/pages/admin/AnalyticsPage'
 import { CustomerOrderPage } from '@/pages/order/CustomerOrderPage'
 import { PharmacyLayout } from '@/components/layout/PharmacyLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
+import { LandingPage } from '@/pages/landing/LandingPage'
 import { Toaster } from '@/components/ui/toaster'
 
 const hostname = window.location.hostname
@@ -47,8 +48,8 @@ function App() {
 
         {!isAdmin && !isPharmacy && (
           <>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}
       </Routes>

@@ -1,0 +1,149 @@
+/* Landing page theme — scoped to [data-theme="landing"] */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+[data-theme="landing"] {
+  --radius: 1rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0.005 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.005 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.005 60);
+  --primary: oklch(0.7 0.19 40);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.21 0.005 60);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.97 0.005 60);
+  --muted-foreground: oklch(0.5 0.01 60);
+  --accent: oklch(0.96 0.02 50);
+  --accent-foreground: oklch(0.21 0.005 60);
+  --destructive: oklch(0.6 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.93 0.005 60);
+  --input: oklch(0.93 0.005 60);
+  --ring: oklch(0.7 0.19 40);
+  --surface: oklch(0.985 0.003 60);
+  --surface-foreground: oklch(0.18 0.005 60);
+  --success: oklch(0.7 0.15 155);
+  --warning: oklch(0.82 0.15 80);
+
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+[data-theme="landing"] h1,
+[data-theme="landing"] h2,
+[data-theme="landing"] h3,
+[data-theme="landing"] h4 {
+  font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="landing"] .bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+[data-theme="landing"] .bg-radial-fade {
+  background: radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 70%);
+}
+
+[data-theme="landing"] .text-gradient-brand {
+  background: linear-gradient(180deg, var(--foreground) 0%, color-mix(in oklab, var(--foreground) 70%, var(--primary)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-theme="landing"] .shadow-card {
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(16,16,14,0.04), 0 12px 32px -12px rgba(16,16,14,0.08);
+}
+
+[data-theme="landing"] .shadow-glow {
+  box-shadow: 0 20px 60px -20px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+
+[data-theme="landing"] .bg-surface {
+  background-color: var(--surface);
+}
+
+[data-theme="landing"] .bg-background {
+  background-color: var(--background);
+}
+
+[data-theme="landing"] .bg-card {
+  background-color: var(--card);
+}
+
+[data-theme="landing"] .bg-secondary {
+  background-color: var(--secondary);
+}
+
+[data-theme="landing"] .bg-muted {
+  background-color: var(--muted);
+}
+
+[data-theme="landing"] .text-foreground { color: var(--foreground); }
+[data-theme="landing"] .text-muted-foreground { color: var(--muted-foreground); }
+[data-theme="landing"] .text-primary { color: var(--primary); }
+[data-theme="landing"] .text-secondary { color: var(--secondary); }
+[data-theme="landing"] .text-secondary-foreground { color: var(--secondary-foreground); }
+[data-theme="landing"] .text-primary-foreground { color: var(--primary-foreground); }
+[data-theme="landing"] .border-border { border-color: var(--border); }
+[data-theme="landing"] .text-success { color: var(--success); }
+[data-theme="landing"] .bg-success { background-color: var(--success); }
+[data-theme="landing"] .bg-success\/15 { background-color: color-mix(in oklab, var(--success) 15%, transparent); }
+[data-theme="landing"] .bg-warning\/20 { background-color: color-mix(in oklab, var(--warning) 20%, transparent); }
+[data-theme="landing"] .border-warning\/30 { border-color: color-mix(in oklab, var(--warning) 30%, transparent); }
+[data-theme="landing"] .border-success\/30 { border-color: color-mix(in oklab, var(--success) 30%, transparent); }
+[data-theme="landing"] .bg-primary { background-color: var(--primary); }
+[data-theme="landing"] .bg-primary\/10 { background-color: color-mix(in oklab, var(--primary) 10%, transparent); }
+[data-theme="landing"] .bg-primary\/15 { background-color: color-mix(in oklab, var(--primary) 15%, transparent); }
+[data-theme="landing"] .text-primary-foreground { color: var(--primary-foreground); }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+[data-theme="landing"] .animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(.2,.7,.2,1) both;
+}
+[data-theme="landing"] .animate-fade-in {
+  animation: fade-in 0.6s ease-out both;
+}
+[data-theme="landing"] .animate-pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+[data-theme="landing"] .animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+[data-theme="landing"] .reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(.2,.7,.2,1), transform 0.7s cubic-bezier(.2,.7,.2,1);
+}
+[data-theme="landing"] .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-theme="landing"] .font-display {
+  font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
