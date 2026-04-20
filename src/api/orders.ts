@@ -7,6 +7,7 @@ export type OrderStatus =
   | 'courier_picked'
   | 'courier_delivery'
   | 'delivered'
+  | 'cancelled'
 
 export type CourierType = 'yandex' | 'noor' | 'millennium'
 

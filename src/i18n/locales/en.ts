@@ -58,6 +58,7 @@ const en = {
         courier_picked: 'Courier Picked Up',
         courier_delivery: 'Out for Delivery',
         delivered: 'Delivered',
+        cancelled: 'Cancelled',
       },
       detail: 'Order Details',
       comment: 'Comment',

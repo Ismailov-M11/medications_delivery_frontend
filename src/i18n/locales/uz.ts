@@ -58,6 +58,7 @@ const uz = {
         courier_picked: 'Kuryer oldi',
         courier_delivery: 'Yetkazilmoqda',
         delivered: 'Yetkazildi',
+        cancelled: 'Bekor qilindi',
       },
       detail: 'Buyurtma tafsilotlari',
       comment: 'Izoh',

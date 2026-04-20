@@ -58,6 +58,7 @@ const ru = {
         courier_picked: 'Курьер забрал',
         courier_delivery: 'Доставляется',
         delivered: 'Доставлен',
+        cancelled: 'Отменён',
       },
       detail: 'Детали заказа',
       comment: 'Комментарий',

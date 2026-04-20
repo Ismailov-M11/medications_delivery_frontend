@@ -9,7 +9,7 @@ interface StatusBadgeProps {
 
 const STATUS_VARIANT_MAP: Record<
   OrderStatus,
-  'pending' | 'confirmed' | 'courier_pickup' | 'courier_picked' | 'courier_delivery' | 'delivered'
+  'pending' | 'confirmed' | 'courier_pickup' | 'courier_picked' | 'courier_delivery' | 'delivered' | 'cancelled'
 > = {
   pending: 'pending',
   confirmed: 'confirmed',
@@ -17,6 +17,7 @@ const STATUS_VARIANT_MAP: Record<
   courier_picked: 'courier_picked',
   courier_delivery: 'courier_delivery',
   delivered: 'delivered',
+  cancelled: 'cancelled',
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
