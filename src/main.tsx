@@ -6,6 +6,7 @@ import App from './App.tsx'
 import './index.css'
 import './i18n/index.ts'
 
+// v1
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
