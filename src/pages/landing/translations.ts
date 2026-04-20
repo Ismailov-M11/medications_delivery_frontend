@@ -1,6 +1,6 @@
-export type Lang = 'uz' | 'ru'
+export type Lang = 'uz' | 'ru' | 'en'
 
-export const TRANSLATIONS = {
+const TRANSLATIONS = {
   uz: {
     nav: {
       problem: "Muammo",
@@ -27,18 +27,9 @@ export const TRANSLATIONS = {
       h2b: "15 minut",
       h2c: "vaqt yo'qotasizmi?",
       items: [
-        {
-          title: "Har bir kuryer ilovasiga alohida kirasiz",
-          desc: "Noor, Millennium, Yandex Go — har biri uchun alohida tab, parol, forma. Vaqt yo'qoladi.",
-        },
-        {
-          title: "Mijoz geolokatsiya yuboradi — manzil noto'g'ri",
-          desc: "Kuryer adashadi, qo'ng'iroq qiladi, mijoz norozi bo'ladi. Yetkazish kechikadi.",
-        },
-        {
-          title: "Eshikka, qavat, telefon — har safar qaytadan",
-          desc: "Bir xil ma'lumotni qayta-qayta yozasiz. Xato qilish ehtimoli yuqori.",
-        },
+        { title: "Har bir kuryer ilovasiga alohida kirasiz", desc: "Noor, Millennium, Yandex Go — har biri uchun alohida tab, parol, forma. Vaqt yo'qoladi." },
+        { title: "Mijoz geolokatsiya yuboradi — manzil noto'g'ri", desc: "Kuryer adashadi, qo'ng'iroq qiladi, mijoz norozi bo'ladi. Yetkazish kechikadi." },
+        { title: "Eshikka, qavat, telefon — har safar qaytadan", desc: "Bir xil ma'lumotni qayta-qayta yozasiz. Xato qilish ehtimoli yuqori." },
       ],
     },
     solution: {
@@ -47,18 +38,9 @@ export const TRANSLATIONS = {
       h2b: "1 bosishda",
       h2c: "buyurtma",
       features: [
-        {
-          title: "Bitta platforma — barcha kuryer xizmatlar",
-          desc: "Noor, Millennium va boshqalarga bitta dashboarddan ulaning. Bir marta yarating — buyurtma siz tanlagan kuryerga zudlik bilan ketadi.",
-        },
-        {
-          title: "Mijoz o'zi aniq manzilni kiritadi",
-          desc: "Mijozga aqlli havola yuboring. U xaritada aniq nuqta, qavat, eshik kodi va vaqt oralig'ini tanlaydi.",
-        },
-        {
-          title: "Narx va ETA bir zumda",
-          desc: "Tasdiqlashdan oldin har bir kuryerdan real vaqtdagi narx va yetib borish vaqtini ko'ring. Eng yaxshisini tanlang.",
-        },
+        { title: "Bitta platforma — barcha kuryer xizmatlar", desc: "Noor, Millennium va boshqalarga bitta dashboarddan ulaning. Bir marta yarating — buyurtma siz tanlagan kuryerga zudlik bilan ketadi." },
+        { title: "Mijoz o'zi aniq manzilni kiritadi", desc: "Mijozga aqlli havola yuboring. U xaritada aniq nuqta, qavat, eshik kodi va vaqt oralig'ini tanlaydi." },
+        { title: "Narx va ETA bir zumda", desc: "Tasdiqlashdan oldin har bir kuryerdan real vaqtdagi narx va yetib borish vaqtini ko'ring. Eng yaxshisini tanlang." },
       ],
     },
     how: {
@@ -76,16 +58,8 @@ export const TRANSLATIONS = {
       h2a: "Mijoz to'lovni",
       h2b: "o'zi tanlaydi",
       modes: [
-        {
-          title: "Yetkazganda naqd",
-          desc: "Mijoz faqat yetkazib berish narxini kuryerga naqd to'laydi.",
-          tag: "Eng mashhur" as string | null,
-        },
-        {
-          title: "To'liq naqd",
-          desc: "Mijoz mahsulot + yetkazib berish summasini kuryerga to'laydi.",
-          tag: null as string | null,
-        },
+        { title: "Yetkazganda naqd", desc: "Mijoz faqat yetkazib berish narxini kuryerga naqd to'laydi.", tag: "Eng mashhur" as string | null },
+        { title: "To'liq naqd", desc: "Mijoz mahsulot + yetkazib berish summasini kuryerga to'laydi.", tag: null as string | null },
       ],
     },
     integrations: {
@@ -101,14 +75,7 @@ export const TRANSLATIONS = {
       price: "100 000",
       currency: "so'm",
       period: "oyiga, soliqlarsiz",
-      features: [
-        "Cheksiz buyurtmalar",
-        "Barcha kuryer integratsiyalari",
-        "Aqlli mijoz havolalari",
-        "Real vaqtda narx va ETA",
-        "Hisobotlar va analitika",
-        "Email va Telegram qo'llab-quvvatlash",
-      ],
+      features: ["Cheksiz buyurtmalar", "Barcha kuryer integratsiyalari", "Aqlli mijoz havolalari", "Real vaqtda narx va ETA", "Hisobotlar va analitika", "Email va Telegram qo'llab-quvvatlash"],
       btn: "7 kun bepul boshlash",
       noCard: "Karta talab qilinmaydi",
     },
@@ -116,27 +83,9 @@ export const TRANSLATIONS = {
       label: "Mijozlar",
       h2: "Ishonchli kompaniyalar tanlovi",
       items: [
-        {
-          quote: "Avval xar xil yetkazib berish ilovalariga alohida kirib, vaqtimning yarmini yo'qotardim. Tezyubor bilan ikkala xizmatga bir zumda buyurtma beraman.",
-          name: "Nodira X.",
-          role: "Dorixona egasi",
-          city: "Toshkent",
-          initials: "NX",
-        },
-        {
-          quote: "Mijozlarga link yuboraman — ular xaritada aniq joyni belgilashadi. Adashish, qo'ng'iroqlar tugadi. Kuniga 30+ buyurtma — muammosiz.",
-          name: "Sardor T.",
-          role: "Onlayn do'kon egasi",
-          city: "Samarqand",
-          initials: "ST",
-        },
-        {
-          quote: "Eng arzon va eng tez kuryerni bir nigohda ko'rish — bu menga oyiga 2 mln so'mga arziydi. Tezyubor bizning ish jarayonimizni butunlay o'zgartirdi.",
-          name: "Madina A.",
-          role: "Restoran direktori",
-          city: "Toshkent",
-          initials: "MA",
-        },
+        { quote: "Avval xar xil yetkazib berish ilovalariga alohida kirib, vaqtimning yarmini yo'qotardim. Tezyubor bilan ikkala xizmatga bir zumda buyurtma beraman.", name: "Nodira X.", role: "Dorixona egasi", city: "Toshkent", initials: "NX" },
+        { quote: "Mijozlarga link yuboraman — ular xaritada aniq joyni belgilashadi. Adashish, qo'ng'iroqlar tugadi. Kuniga 30+ buyurtma — muammosiz.", name: "Sardor T.", role: "Onlayn do'kon egasi", city: "Samarqand", initials: "ST" },
+        { quote: "Eng arzon va eng tez kuryerni bir nigohda ko'rish — bu menga oyiga 2 mln so'mga arziydi. Tezyubor bizning ish jarayonimizni butunlay o'zgartirdi.", name: "Madina A.", role: "Restoran direktori", city: "Toshkent", initials: "MA" },
       ],
     },
     cta: {
@@ -181,18 +130,9 @@ export const TRANSLATIONS = {
       h2b: "15 минут",
       h2c: "на каждый заказ?",
       items: [
-        {
-          title: "Отдельный вход в каждое приложение",
-          desc: "Noor, Millennium, Yandex Go — отдельная вкладка, пароль, форма для каждого. Время уходит впустую.",
-        },
-        {
-          title: "Клиент присылает геолокацию — адрес неверный",
-          desc: "Курьер теряется, звонит, клиент недоволен. Доставка задерживается.",
-        },
-        {
-          title: "Подъезд, этаж, телефон — каждый раз заново",
-          desc: "Одни и те же данные приходится вводить снова и снова. Ошибки неизбежны.",
-        },
+        { title: "Отдельный вход в каждое приложение", desc: "Noor, Millennium, Yandex Go — отдельная вкладка, пароль, форма для каждого. Время уходит впустую." },
+        { title: "Клиент присылает геолокацию — адрес неверный", desc: "Курьер теряется, звонит, клиент недоволен. Доставка задерживается." },
+        { title: "Подъезд, этаж, телефон — каждый раз заново", desc: "Одни и те же данные приходится вводить снова и снова. Ошибки неизбежны." },
       ],
     },
     solution: {
@@ -201,18 +141,9 @@ export const TRANSLATIONS = {
       h2b: "1 кликом",
       h2c: "заказ",
       features: [
-        {
-          title: "Одна платформа — все курьерские службы",
-          desc: "Подключайтесь к Noor, Millennium и другим из одного дашборда. Создайте один раз — заказ мгновенно уходит к выбранному курьеру.",
-        },
-        {
-          title: "Клиент сам вводит точный адрес",
-          desc: "Отправьте клиенту умную ссылку. Он указывает точку на карте, этаж, код домофона и удобное время.",
-        },
-        {
-          title: "Цена и ETA за секунды",
-          desc: "До подтверждения видите реальные цены и время доставки от каждого курьера. Выбирайте лучшее.",
-        },
+        { title: "Одна платформа — все курьерские службы", desc: "Подключайтесь к Noor, Millennium и другим из одного дашборда. Создайте один раз — заказ мгновенно уходит к выбранному курьеру." },
+        { title: "Клиент сам вводит точный адрес", desc: "Отправьте клиенту умную ссылку. Он указывает точку на карте, этаж, код домофона и удобное время." },
+        { title: "Цена и ETA за секунды", desc: "До подтверждения видите реальные цены и время доставки от каждого курьера. Выбирайте лучшее." },
       ],
     },
     how: {
@@ -230,16 +161,8 @@ export const TRANSLATIONS = {
       h2a: "Клиент выбирает",
       h2b: "способ оплаты сам",
       modes: [
-        {
-          title: "Наличные при получении",
-          desc: "Клиент платит курьеру только за доставку наличными.",
-          tag: "Самый популярный" as string | null,
-        },
-        {
-          title: "Полная оплата наличными",
-          desc: "Клиент платит курьеру за товар + доставку наличными.",
-          tag: null as string | null,
-        },
+        { title: "Наличные при получении", desc: "Клиент платит курьеру только за доставку наличными.", tag: "Самый популярный" as string | null },
+        { title: "Полная оплата наличными", desc: "Клиент платит курьеру за товар + доставку наличными.", tag: null as string | null },
       ],
     },
     integrations: {
@@ -255,14 +178,7 @@ export const TRANSLATIONS = {
       price: "100 000",
       currency: "сум",
       period: "в месяц, без налогов",
-      features: [
-        "Безлимитные заказы",
-        "Все курьерские интеграции",
-        "Умные ссылки для клиентов",
-        "Цена и ETA в реальном времени",
-        "Отчёты и аналитика",
-        "Поддержка по Email и Telegram",
-      ],
+      features: ["Безлимитные заказы", "Все курьерские интеграции", "Умные ссылки для клиентов", "Цена и ETA в реальном времени", "Отчёты и аналитика", "Поддержка по Email и Telegram"],
       btn: "Начать бесплатно на 7 дней",
       noCard: "Карта не нужна",
     },
@@ -270,27 +186,9 @@ export const TRANSLATIONS = {
       label: "Клиенты",
       h2: "Выбор надёжных компаний",
       items: [
-        {
-          quote: "Раньше я тратила половину времени, заходя в разные приложения доставки. С Tezyubor оформляю заказ сразу в обе службы за секунды.",
-          name: "Нодира Х.",
-          role: "Владелец аптеки",
-          city: "Ташкент",
-          initials: "НХ",
-        },
-        {
-          quote: "Отправляю клиентам ссылку — они сами отмечают точное место. Никаких ошибок, никаких звонков. 30+ заказов в день — без проблем.",
-          name: "Сардор Т.",
-          role: "Владелец интернет-магазина",
-          city: "Самарканд",
-          initials: "СТ",
-        },
-        {
-          quote: "Видеть самого дешёвого и быстрого курьера одним взглядом — это экономит мне 2 млн сум в месяц. Tezyubor полностью изменил наш рабочий процесс.",
-          name: "Мадина А.",
-          role: "Директор ресторана",
-          city: "Ташкент",
-          initials: "МА",
-        },
+        { quote: "Раньше я тратила половину времени, заходя в разные приложения доставки. С Tezyubor оформляю заказ сразу в обе службы за секунды.", name: "Нодира Х.", role: "Владелец аптеки", city: "Ташкент", initials: "НХ" },
+        { quote: "Отправляю клиентам ссылку — они сами отмечают точное место. Никаких ошибок, никаких звонков. 30+ заказов в день — без проблем.", name: "Сардор Т.", role: "Владелец интернет-магазина", city: "Самарканд", initials: "СТ" },
+        { quote: "Видеть самого дешёвого и быстрого курьера одним взглядом — это экономит мне 2 млн сум в месяц. Tezyubor полностью изменил наш рабочий процесс.", name: "Мадина А.", role: "Директор ресторана", city: "Ташкент", initials: "МА" },
       ],
     },
     cta: {
@@ -308,6 +206,110 @@ export const TRANSLATIONS = {
       location: "Ташкент, Узбекистан",
     },
   },
-} as const
 
+  en: {
+    nav: {
+      problem: "Problem",
+      solution: "Solution",
+      how: "How it works",
+      pricing: "Pricing",
+      login: "Log in",
+      start: "Get started",
+    },
+    hero: {
+      badge: "Logistics platform for Uzbekistan",
+      h1a: "All delivery services —",
+      h1b: "one button",
+      p: "Create orders across all courier services on one platform. Stop switching between apps and re-entering the same data.",
+      btn1: "Start free for 7 days",
+      btn2: "Watch demo",
+      f1: "No card required",
+      f2: "Set up in 5 minutes",
+      f3: "Cancel anytime",
+    },
+    problem: {
+      label: "Problem",
+      h2a: "Spending",
+      h2b: "15 minutes",
+      h2c: "on every single order?",
+      items: [
+        { title: "Separate login for every courier app", desc: "Noor, Millennium, Yandex Go — a different tab, password, and form for each. Time wasted." },
+        { title: "Customer sends geolocation — address is wrong", desc: "Courier gets lost, calls back, customer is unhappy. Delivery is delayed." },
+        { title: "Entrance, floor, phone — entered every time", desc: "The same data entered over and over. Mistakes are inevitable." },
+      ],
+    },
+    solution: {
+      label: "Solution",
+      h2a: "With Tezyubor —",
+      h2b: "1 click",
+      h2c: "order",
+      features: [
+        { title: "One platform — all courier services", desc: "Connect to Noor, Millennium and more from a single dashboard. Create once — the order goes to your chosen courier instantly." },
+        { title: "Customer enters the exact address themselves", desc: "Send the customer a smart link. They pin an exact point on the map, floor, door code and preferred time window." },
+        { title: "Price and ETA in seconds", desc: "Before confirming, see real-time prices and delivery times from every courier. Pick the best one." },
+      ],
+    },
+    how: {
+      label: "Process",
+      h2: "How does it work?",
+      steps: [
+        { title: "Create an order", desc: "Enter product details into your dashboard." },
+        { title: "Send the link", desc: "The customer receives a smart delivery link." },
+        { title: "Customer picks address", desc: "Exact map pin + additional preferences." },
+        { title: "Courier dispatches", desc: "Order is created in the chosen courier service." },
+      ],
+    },
+    payment: {
+      label: "Payment",
+      h2a: "Customer chooses",
+      h2b: "how to pay",
+      modes: [
+        { title: "Cash on delivery", desc: "Customer pays the courier only the delivery fee in cash.", tag: "Most popular" as string | null },
+        { title: "Full cash payment", desc: "Customer pays the courier for goods + delivery in cash.", tag: null as string | null },
+      ],
+    },
+    integrations: {
+      h2: "Connected services",
+      p: "More courier services coming soon...",
+      soon: "+ coming soon",
+    },
+    pricing: {
+      label: "Pricing",
+      h2: "Simple pricing",
+      p: "No hidden fees. One plan — all features.",
+      badge: "BASE",
+      price: "100 000",
+      currency: "UZS",
+      period: "per month, excl. tax",
+      features: ["Unlimited orders", "All courier integrations", "Smart customer links", "Real-time price & ETA", "Reports and analytics", "Email & Telegram support"],
+      btn: "Start free for 7 days",
+      noCard: "No card required",
+    },
+    testimonials: {
+      label: "Customers",
+      h2: "Trusted by reliable businesses",
+      items: [
+        { quote: "I used to waste half my time logging into different delivery apps. With Tezyubor I place orders to both services in seconds.", name: "Nodira X.", role: "Pharmacy owner", city: "Tashkent", initials: "NX" },
+        { quote: "I send clients a link — they pin the exact spot themselves. No more confusion, no more calls. 30+ orders a day, no problems.", name: "Sardor T.", role: "Online shop owner", city: "Samarkand", initials: "ST" },
+        { quote: "Seeing the cheapest and fastest courier at a glance saves me 2M UZS a month. Tezyubor completely transformed our workflow.", name: "Madina A.", role: "Restaurant director", city: "Tashkent", initials: "MA" },
+      ],
+    },
+    cta: {
+      h2: "Start today — 7 days free",
+      p: "No card needed. Set up in 5 minutes and create your first order today.",
+      btn1: "Sign up",
+      btn2: "Contact us",
+    },
+    footer: {
+      product: "Product",
+      contact: "Contact",
+      links: { pricing: "Pricing", how: "How it works", contactLink: "Contact" },
+      tagline: "Simplify your deliveries.",
+      copyright: "All rights reserved.",
+      location: "Tashkent, Uzbekistan",
+    },
+  },
+}
+
+export { TRANSLATIONS }
 export type Translations = typeof TRANSLATIONS['uz']

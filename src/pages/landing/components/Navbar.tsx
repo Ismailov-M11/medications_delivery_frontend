@@ -3,8 +3,14 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useLandingT } from "../LandingContext";
+import type { Lang } from "../translations";
 
 const APP_URL = "https://app.tezyubor.uz";
+const LANGS: { code: Lang; label: string }[] = [
+  { code: "uz", label: "UZ" },
+  { code: "ru", label: "RU" },
+  { code: "en", label: "EN" },
+];
 
 export function Navbar() {
   const { lang, setLang, t } = useLandingT();
@@ -53,27 +59,21 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {/* Language switcher */}
           <div className="flex items-center gap-0.5 text-sm">
-            <button
-              onClick={() => setLang("uz")}
-              className={`px-2 py-1 rounded-md transition-colors ${
-                lang === "uz"
-                  ? "text-foreground font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              UZ
-            </button>
-            <span className="text-border">|</span>
-            <button
-              onClick={() => setLang("ru")}
-              className={`px-2 py-1 rounded-md transition-colors ${
-                lang === "ru"
-                  ? "text-foreground font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              RU
-            </button>
+            {LANGS.map((l, i) => (
+              <span key={l.code} className="contents">
+                {i > 0 && <span className="text-border select-none">|</span>}
+                <button
+                  onClick={() => setLang(l.code)}
+                  className={`px-2 py-1 rounded-md transition-colors ${
+                    lang === l.code
+                      ? "text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              </span>
+            ))}
           </div>
           <Button variant="ghost" className="text-sm" asChild>
             <a href={`${APP_URL}/login`}>{t.nav.login}</a>
@@ -106,26 +106,19 @@ export function Navbar() {
               </a>
             ))}
             <div className="flex items-center gap-2 py-1">
-              <button
-                onClick={() => setLang("uz")}
-                className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-                  lang === "uz"
-                    ? "border-primary text-primary font-medium"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                UZ
-              </button>
-              <button
-                onClick={() => setLang("ru")}
-                className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-                  lang === "ru"
-                    ? "border-primary text-primary font-medium"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                RU
-              </button>
+              {LANGS.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  className={`text-sm px-3 py-1 rounded-full border transition-colors ${
+                    lang === l.code
+                      ? "border-primary text-primary font-medium"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
             </div>
             <div className="flex gap-2 pt-1">
               <Button variant="outline" className="flex-1 rounded-full" asChild>
