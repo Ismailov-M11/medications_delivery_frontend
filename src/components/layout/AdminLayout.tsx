@@ -18,19 +18,19 @@ import { cn } from '@/lib/utils'
 const NAV_ITEMS = [
   {
     key: 'orders',
-    to: '/admin/orders',
+    to: '/orders',
     icon: ShoppingCart,
     labelKey: 'admin.orders',
   },
   {
     key: 'pharmacies',
-    to: '/admin/pharmacies',
+    to: '/pharmacies',
     icon: Building2,
     labelKey: 'admin.pharmacies',
   },
   {
     key: 'analytics',
-    to: '/admin/analytics',
+    to: '/analytics',
     icon: BarChart3,
     labelKey: 'admin.analytics',
   },
@@ -43,16 +43,16 @@ export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (!token || !user) {
-    return <Navigate to="/admin/login" replace />
+    return <Navigate to="/login" replace />
   }
 
   if (user.role !== 'admin') {
-    return <Navigate to="/pharmacy/orders" replace />
+    return <Navigate to="/login" replace />
   }
 
   const handleLogout = () => {
     logout()
-    navigate('/admin/login')
+    navigate('/login')
   }
 
   return (

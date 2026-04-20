@@ -10,32 +10,47 @@ import { PharmacyLayout } from '@/components/layout/PharmacyLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { Toaster } from '@/components/ui/toaster'
 
+const hostname = window.location.hostname
+const isAdmin    = hostname.startsWith('admin.')
+const isPharmacy = hostname.startsWith('app.')
+
 function App() {
   return (
     <>
       <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+        {/* Customer order page — available on all domains */}
         <Route path="/order/:token" element={<CustomerOrderPage />} />
 
-        {/* Pharmacy protected routes */}
-        <Route element={<PharmacyLayout />}>
-          <Route path="/pharmacy/orders" element={<PharmacyOrdersPage />} />
-        </Route>
+        {isAdmin && (
+          <>
+            <Route path="/login" element={<AdminLoginPage />} />
+            <Route element={<AdminLayout />}>
+              <Route path="/orders" element={<AdminOrdersPage />} />
+              <Route path="/pharmacies" element={<AdminPharmaciesPage />} />
+              <Route path="/analytics" element={<AdminAnalyticsPage />} />
+            </Route>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        )}
 
-        {/* Admin protected routes */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin/orders" element={<AdminOrdersPage />} />
-          <Route path="/admin/pharmacies" element={<AdminPharmaciesPage />} />
-          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-        </Route>
+        {isPharmacy && (
+          <>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<PharmacyLayout />}>
+              <Route path="/orders" element={<PharmacyOrdersPage />} />
+            </Route>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        )}
 
-        {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {!isAdmin && !isPharmacy && (
+          <>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        )}
       </Routes>
       <Toaster />
     </>

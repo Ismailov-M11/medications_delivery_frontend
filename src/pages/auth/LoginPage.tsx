@@ -55,7 +55,7 @@ export function LoginPage() {
           queryKey: ['pharmacyOrders', 1],
           queryFn: () => getPharmacyOrders({ page: 1, pageSize: 20 }),
         })
-        navigate('/pharmacy/orders', { replace: true })
+        navigate('/orders', { replace: true })
       } else {
         setApiError(response.message || t('auth.invalidCredentials'))
       }
@@ -169,7 +169,7 @@ export function LoginPage() {
 
             <div className="mt-4 text-center">
               <a
-                href="/admin/login"
+                href={`https://admin.${window.location.hostname.replace(/^app\./, '')}/login`}
                 className="text-sm text-muted-foreground hover:text-primary"
               >
                 {t('auth.adminLogin')} →

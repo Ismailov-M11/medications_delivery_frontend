@@ -14,7 +14,7 @@ export function PharmacyLayout() {
   }
 
   if (user.role !== 'pharmacy') {
-    return <Navigate to="/admin/orders" replace />
+    return <Navigate to="/login" replace />
   }
 
   return (

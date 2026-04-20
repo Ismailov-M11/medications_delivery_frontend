@@ -41,7 +41,7 @@ export function AdminLoginPage() {
     onSuccess: (response) => {
       if (response.success && response.data) {
         setAuth(response.data.token, response.data.user)
-        navigate('/admin/orders', { replace: true })
+        navigate('/orders', { replace: true })
       } else {
         setApiError(response.message || t('auth.invalidCredentials'))
       }

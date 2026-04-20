@@ -7,11 +7,7 @@ export function useAuth() {
 
   const handleLogout = () => {
     logout()
-    if (user?.role === 'admin') {
-      navigate('/admin/login')
-    } else {
-      navigate('/login')
-    }
+    navigate('/login')
   }
 
   return {
