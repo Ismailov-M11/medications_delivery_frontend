@@ -1,4 +1,5 @@
 import './landing.css'
+import { LandingProvider } from './LandingContext'
 import { Navbar } from './components/Navbar'
 import { Hero } from './components/Hero'
 import { Problem } from './components/Problem'
@@ -13,20 +14,22 @@ import { Footer } from './components/Footer'
 
 export function LandingPage() {
   return (
-    <div data-theme="landing" className="min-h-screen bg-background text-foreground">
-      <Navbar />
-      <main>
-        <Hero />
-        <Problem />
-        <Solution />
-        <HowItWorks />
-        <PaymentModes />
-        <Integrations />
-        <Pricing />
-        <Testimonials />
-        <FinalCTA />
-      </main>
-      <Footer />
-    </div>
+    <LandingProvider>
+      <div data-theme="landing" className="min-h-screen bg-background text-foreground">
+        <Navbar />
+        <main>
+          <Hero />
+          <Problem />
+          <Solution />
+          <HowItWorks />
+          <PaymentModes />
+          <Integrations />
+          <Pricing />
+          <Testimonials />
+          <FinalCTA />
+        </main>
+        <Footer />
+      </div>
+    </LandingProvider>
   )
 }

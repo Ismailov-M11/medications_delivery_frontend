@@ -1,4 +1,5 @@
 import { Reveal } from "./Reveal";
+import { useLandingT } from "../LandingContext";
 
 const couriers = [
   { name: "Noor", color: "from-blue-500/20 to-blue-500/5", dot: "bg-blue-500" },
@@ -7,13 +8,14 @@ const couriers = [
 ];
 
 export function Integrations() {
+  const { t } = useLandingT();
   return (
     <section className="py-20 bg-surface border-y border-border">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <Reveal>
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Ulangan xizmatlar</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Yangi kuryer xizmatlar tez orada...</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">{t.integrations.h2}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t.integrations.p}</p>
           </div>
         </Reveal>
 
@@ -29,7 +31,7 @@ export function Integrations() {
               </div>
             ))}
             <div className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-5 py-2.5 text-sm text-muted-foreground">
-              + tez orada
+              {t.integrations.soon}
             </div>
           </div>
         </Reveal>

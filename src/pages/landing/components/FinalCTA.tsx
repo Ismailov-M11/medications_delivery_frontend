@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "./Reveal";
+import { useLandingT } from "../LandingContext";
 
 const APP_URL = "https://app.tezyubor.uz";
 
 export function FinalCTA() {
+  const { t } = useLandingT();
   return (
     <section className="py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
@@ -25,10 +27,10 @@ export function FinalCTA() {
 
             <div className="relative">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight max-w-2xl mx-auto leading-[1.1]">
-                Bugun boshlang — 7 kun bepul
+                {t.cta.h2}
               </h2>
               <p className="mt-5 text-base sm:text-lg text-primary-foreground/85 max-w-xl mx-auto">
-                Karta kerak emas. 5 daqiqada sozlang va birinchi buyurtmangizni bugun yarating.
+                {t.cta.p}
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 <Button
@@ -37,7 +39,7 @@ export function FinalCTA() {
                   className="rounded-full h-12 px-7 text-base bg-white text-secondary hover:bg-white/95"
                 >
                   <a href={`${APP_URL}/login`}>
-                    Ro'yxatdan o'tish
+                    {t.cta.btn1}
                     <ArrowRight className="ml-1 h-4 w-4" />
                   </a>
                 </Button>
@@ -46,7 +48,7 @@ export function FinalCTA() {
                   variant="outline"
                   className="rounded-full h-12 px-7 text-base bg-transparent text-primary-foreground border-primary-foreground/30 hover:bg-white/10 hover:text-primary-foreground"
                 >
-                  Biz bilan bog'laning
+                  {t.cta.btn2}
                 </Button>
               </div>
             </div>

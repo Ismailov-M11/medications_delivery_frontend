@@ -1,35 +1,35 @@
 import { Logo } from "./Logo";
 import { Send, Instagram, Mail } from "lucide-react";
+import { useLandingT } from "../LandingContext";
 
 export function Footer() {
+  const { t } = useLandingT();
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto max-w-7xl px-5 lg:px-8 py-14">
         <div className="grid md:grid-cols-[1.5fr_1fr_1fr] gap-10">
           <div>
             <Logo />
-            <p className="mt-4 text-sm text-muted-foreground max-w-xs">
-              Yetkazib berishni osonlashtiring.
-            </p>
+            <p className="mt-4 text-sm text-muted-foreground max-w-xs">{t.footer.tagline}</p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold mb-4">Mahsulot</h4>
+            <h4 className="text-sm font-semibold mb-4">{t.footer.product}</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <a href="#pricing" className="hover:text-foreground">Narxlar</a>
+                <a href="#pricing" className="hover:text-foreground">{t.footer.links.pricing}</a>
               </li>
               <li>
-                <a href="#how" className="hover:text-foreground">Qanday ishlaydi</a>
+                <a href="#how" className="hover:text-foreground">{t.footer.links.how}</a>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground">Bog'lanish</a>
+                <a href="#" className="hover:text-foreground">{t.footer.links.contactLink}</a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold mb-4">Aloqa</h4>
+            <h4 className="text-sm font-semibold mb-4">{t.footer.contact}</h4>
             <a
               href="mailto:hello@tezyubor.uz"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -57,8 +57,8 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} Tezyubor. Barcha huquqlar himoyalangan.</span>
-          <span>Toshkent, O'zbekiston</span>
+          <span>© {new Date().getFullYear()} Tezyubor. {t.footer.copyright}</span>
+          <span>{t.footer.location}</span>
         </div>
       </div>
     </footer>
