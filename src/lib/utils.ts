@@ -33,5 +33,6 @@ export function truncateToken(token: string, length = 8): string {
 }
 
 export function buildOrderUrl(token: string): string {
-  return `${window.location.origin}/order/${token}`
+  const base = import.meta.env.VITE_CUSTOMER_URL || window.location.origin
+  return `${base}/order/${token}`
 }
