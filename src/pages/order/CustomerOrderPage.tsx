@@ -98,6 +98,11 @@ export function CustomerOrderPage() {
     queryFn: () => getOrderByToken(token!),
     enabled: !!token,
     retry: 1,
+    refetchInterval: (query) => {
+      const status = query.state.data?.data?.status
+      if (!status || status === 'delivered' || status === 'cancelled') return false
+      return 10000
+    },
   })
 
   const order = confirmedOrder ?? data?.data

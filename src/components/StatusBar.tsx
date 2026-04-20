@@ -63,17 +63,20 @@ export function StatusBar({ status }: StatusBarProps) {
               className="relative z-10 flex flex-col items-center gap-2"
               style={{ width: `${100 / STATUS_STEPS.length}%` }}
             >
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300',
-                  isCompleted &&
-                    'border-blue-500 bg-blue-500 text-white',
-                  isCurrent &&
-                    'border-blue-500 bg-white text-blue-500 shadow-md shadow-blue-200',
-                  isPending && 'border-gray-200 bg-white text-gray-300',
+              <div className="relative">
+                {isCurrent && status !== 'delivered' && (
+                  <span className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-40" />
                 )}
-              >
-                <Icon className="h-5 w-5" />
+                <div
+                  className={cn(
+                    'relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300',
+                    isCompleted && 'border-blue-500 bg-blue-500 text-white',
+                    isCurrent && 'border-blue-500 bg-white text-blue-500 shadow-md shadow-blue-200',
+                    isPending && 'border-gray-200 bg-white text-gray-300',
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
               </div>
               <span
                 className={cn(
